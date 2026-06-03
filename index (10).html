@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joe Session 11 - Consistency Beats Motivation</title>
+<style>
+:root{
+  --bg:#0f172a;--panel:#111827;--card:#1f2937;--text:#f8fafc;--muted:#cbd5e1;
+  --accent:#38bdf8;--good:#22c55e;--warn:#facc15;--bad:#fb7185;--purple:#a78bfa;
+  --border:rgba(255,255,255,.14);--shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);
+  min-height:100vh;background:radial-gradient(circle at top left,rgba(56,189,248,.24),transparent 30%),
+  radial-gradient(circle at top right,rgba(167,139,250,.18),transparent 30%),linear-gradient(135deg,#020617,#0f172a 45%,#111827);
+}
+header{text-align:center;padding:28px 18px 12px}
+header h1{margin:0;font-size:clamp(1.8rem,4vw,3.1rem);line-height:1.05}
+header p{max-width:920px;margin:10px auto 0;color:var(--muted);font-size:1.05rem}
+.wrap{max-width:1180px;margin:0 auto;padding:12px 16px 50px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;position:sticky;top:0;z-index:40;background:rgba(15,23,42,.94);backdrop-filter:blur(10px);padding:12px;border-bottom:1px solid var(--border)}
+.tab{border:1px solid var(--border);background:rgba(255,255,255,.07);color:var(--text);padding:10px 14px;border-radius:999px;cursor:pointer;font-weight:800;transition:.15s}
+.tab:hover,.tab.active{background:var(--accent);color:#082f49;transform:translateY(-1px)}
+section{display:none;margin-top:18px;background:rgba(17,24,39,.84);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:22px}
+section.active{display:block}
+h2{margin:0 0 8px;font-size:1.8rem}
+h3{margin:18px 0 8px;color:#e0f2fe}
+p{line-height:1.55}.subtitle,.mini{color:var(--muted)}.mini{font-size:.92rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.035));border:1px solid var(--border);border-radius:18px;padding:16px}
+.card strong{color:#e0f2fe}
+table{width:100%;border-collapse:collapse;margin:12px 0;border-radius:14px;overflow:hidden}
+th,td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+th{background:rgba(56,189,248,.16);color:#e0f2fe}tr:nth-child(even) td{background:rgba(255,255,255,.035)}
+button,.arcade-button{border:none;border-radius:13px;padding:11px 14px;font-weight:850;cursor:pointer;background:var(--accent);color:#082f49;margin:4px 4px 4px 0;transition:.15s;text-decoration:none;display:inline-block}
+button:hover,.arcade-button:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.secondary{background:#334155;color:#f8fafc;border:1px solid var(--border)}.good{background:var(--good);color:#052e16}.purple,.arcade-button.purple{background:var(--purple);color:#2e1065}
+.pill{display:inline-block;padding:6px 10px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);border-radius:999px;margin:3px;font-weight:800;color:#bae6fd}
+.choice{display:block;width:100%;text-align:left;background:#334155;color:#f8fafc;border:1px solid var(--border);margin:8px 0;line-height:1.35}
+.choice.correct{background:#166534}.choice.wrong{background:#9f1239}
+.feedback{min-height:46px;padding:12px;background:rgba(2,6,23,.45);border:1px dashed var(--border);border-radius:14px;margin-top:10px;color:#e2e8f0}
+textarea{width:100%;border-radius:12px;border:1px solid var(--border);padding:10px;background:#f8fafc;color:#0f172a;font:inherit}
+label{display:block;margin:8px 0;color:#e2e8f0}
+.scoreBox{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0}
+.scoreItem{background:rgba(2,6,23,.45);border:1px solid var(--border);border-radius:14px;padding:10px 12px;min-width:125px}
+.scoreItem span{display:block;font-size:1.55rem;font-weight:950;color:#e0f2fe}
+.meterOuter{height:18px;background:#020617;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin:8px 0}
+.meterInner{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#38bdf8,#a78bfa);transition:.25s}
+.arcade-hero{text-align:center;padding:28px;border-radius:22px;border:1px solid rgba(167,139,250,.45);background:radial-gradient(circle at 50% 0%,rgba(167,139,250,.25),transparent 45%),rgba(2,6,23,.35)}
+.arcade-hero h2{font-size:clamp(2rem,5vw,4rem);color:#facc15;text-shadow:0 0 12px rgba(250,204,21,.55)}
+.arcade-button.big{font-size:1.25rem;padding:16px 24px;margin-top:10px}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.timerBox{position:fixed;bottom:14px;right:14px;background:#020617;border:1px solid var(--border);padding:10px 14px;border-radius:16px;box-shadow:var(--shadow);z-index:100;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.timerTime{font-size:1.25rem;font-weight:950;color:#e0f2fe}
+@media(max-width:760px){.twoCol{grid-template-columns:1fr}.timerBox{position:static;margin:14px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Session 11: Consistency Beats Motivation</h1>
+<p>Today’s focus is practical: how successful adults use systems, communication, and small follow-through habits when motivation is inconsistent.</p>
+</header>
+
+<nav class="tabs">
+<button class="tab active" onclick="showTab('agenda',this)">Agenda</button>
+<button class="tab" onclick="showTab('warmup',this)">Warm-Up</button>
+<button class="tab" onclick="showTab('scenarios',this)">Scenario Lab</button>
+<button class="tab" onclick="showTab('arcade',this)">WorkKeys Arcade</button>
+<button class="tab" onclick="showTab('future',this)">Future Joe</button>
+<button class="tab" onclick="showTab('commitment',this)">Commitment</button>
+<button class="tab" onclick="showTab('coach',this)">Coach Notes</button>
+</nav>
+
+<main class="wrap">
+<section id="agenda" class="active">
+<h2>Today’s Agenda</h2>
+<p class="subtitle">The goal is to turn last session’s momentum into a repeatable system.</p>
+<table>
+<thead><tr><th>Time</th><th>Activity</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>5–8 min</td><td>Check-In + Five-Minute Commitment Review</td><td>Look at follow-through without shame or pressure.</td></tr>
+<tr><td>8–10 min</td><td>Ireland Reflection Follow-Up</td><td>Use perspective-taking to support maturity and future thinking.</td></tr>
+<tr><td>10–12 min</td><td>Successful Day vs. Rough Day</td><td>Help Joe see that good days usually start with preparation.</td></tr>
+<tr><td>15–20 min</td><td>Scenario Lab</td><td>Practice workplace judgment, communication, and self-management.</td></tr>
+<tr><td>15–25 min</td><td>WorkKeys Arcade</td><td>Launch the full arcade for deeper adaptive WorkKeys-style practice.</td></tr>
+<tr><td>8–10 min</td><td>Future Joe Exercise</td><td>Connect today’s habits to next year’s opportunities.</td></tr>
+<tr><td>5 min</td><td>One Commitment</td><td>Pick a realistic action before the next session.</td></tr>
+</tbody>
+</table>
+<div class="grid">
+<div class="card"><h3>Session Theme</h3><p><strong>Consistency beats motivation.</strong> Motivation comes and goes. Systems make success easier when motivation is low.</p></div>
+<div class="card"><h3>Suggested Flow</h3><p>Warm-up → Scenario Lab → WorkKeys Arcade → Future Joe → Commitment</p><span class="pill">Real life first</span><span class="pill">WorkKeys second</span><span class="pill">Small commitment last</span></div>
+<div class="card"><h3>Win Condition</h3><p>Joe leaves with one useful insight, one stronger decision-making tool, and one small commitment he believes he can actually do.</p></div>
+</div>
+</section>
+
+<section id="warmup">
+<h2>Warm-Up: Start Small, Think Bigger</h2>
+<div class="grid">
+<div class="card"><h3>Commitment Review</h3><p><strong>Question:</strong> “How did the five minutes of work prep go?”</p><p class="mini">If he did it: identify what helped him start. If he did not: identify what blocked the start.</p><textarea rows="4" placeholder="Notes: What helped or got in the way?"></textarea></div>
+<div class="card"><h3>Ireland Follow-Up</h3><p><strong>Question:</strong> “Has anything from Ireland stuck with you since we last talked?”</p><textarea rows="4" placeholder="Notes: perspective, travel, future, work, independence..."></textarea></div>
+</div>
+<h3>Successful Day vs. Rough Day</h3>
+<div class="twoCol">
+<div class="card"><h3>Successful Day</h3><textarea rows="8" placeholder="What happens on a good day? What did you do before the day started?"></textarea></div>
+<div class="card"><h3>Rough Day</h3><textarea rows="8" placeholder="What happens on a rough day? What usually happened before it went sideways?"></textarea></div>
+</div>
+<div class="card"><h3>Key Discovery</h3><p>Most successful days are not magic. They usually start with one or two small choices made earlier.</p></div>
+</section>
+
+<section id="scenarios">
+<h2>Scenario Lab: Workplace Judgment & Adult Decisions</h2>
+<p class="subtitle">Read the scenario, choose a response, then discuss what a professional would do and why.</p>
+<div class="scoreBox">
+<div class="scoreItem">Scenario XP<span id="scXP">0</span></div>
+<div class="scoreItem">Level<span id="scLevel">1</span></div>
+<div class="scoreItem">Scenarios Done<span id="scDone">0</span></div>
+</div>
+<div class="meterOuter"><div id="scBar" class="meterInner"></div></div>
+<div class="card">
+<button onclick="newScenario()">New Scenario</button>
+<button class="purple" onclick="newBossScenario()">Boss-Level Scenario</button>
+<button class="secondary" onclick="resetScenarios()">Reset Scenario Score</button>
+<h3 id="scTitle">Click “New Scenario” to begin.</h3>
+<p id="scText">Scenario text will appear here.</p>
+<div id="scContext"></div>
+<div id="scChoices"></div>
+<div id="scFeedback" class="feedback">Feedback will appear here.</div>
+</div>
+<div class="grid">
+<div class="card"><h3>Explain Your Thinking</h3><textarea id="scExplain" rows="5" placeholder="What would you do first? Why? What could go wrong if you handled it poorly?"></textarea></div>
+<div class="card"><h3>Professional Response Formula</h3><p><strong>Pause → Clarify → Choose → Communicate → Follow Through</strong></p><p class="mini">Use this when a situation feels annoying, confusing, unfair, or stressful.</p></div>
+</div>
+</section>
+
+<section id="arcade">
+<div class="arcade-hero">
+<h2>WORKKEYS ARCADE</h2>
+<p class="subtitle">Launch the full practice arcade with adaptive difficulty, streaks, hints, workplace documents, math, reading, and scenario-based decision-making.</p>
+<a href="workkeys_arcade.html" target="_blank" class="arcade-button purple big">Launch Full WorkKeys Arcade</a>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="card"><h3>Recommended Mode Today</h3><p><strong>Scenario Boss</strong></p><p class="mini">Best match for today’s goal: workplace judgment, communication, and adult decision-making.</p></div>
+<div class="card"><h3>Stretch Goal</h3><p><strong>Doc Dungeon</strong></p><p class="mini">Closest fit to real WorkKeys workplace-document practice.</p></div>
+<div class="card"><h3>Fast Challenge</h3><p><strong>Speed Blitz</strong></p><p class="mini">Good if Joe wants a quick, gamified challenge with pressure and momentum.</p></div>
+</div>
+<div class="card" style="margin-top:16px">
+<h3>Important Upload Note</h3>
+<p>For the launch button to work on GitHub Pages, upload this file as <strong>index.html</strong> and upload the arcade file as <strong>workkeys_arcade.html</strong> in the same folder.</p>
+</div>
+</section>
+
+<section id="future">
+<h2>Future Joe Exercise</h2>
+<p class="subtitle">Connect today’s small choices to next year’s opportunities.</p>
+<div class="grid">
+<div class="card"><h3>One Year From Now</h3><label>Where are you working or training?</label><textarea rows="3"></textarea><label>What skill are you better at?</label><textarea rows="3"></textarea><label>What are you proud of?</label><textarea rows="3"></textarea></div>
+<div class="card"><h3>Future Joe’s Advice</h3><p>Imagine Future Joe is talking to Current Joe.</p><textarea rows="10" placeholder="Future Joe would probably tell me to start..."></textarea></div>
+</div>
+</section>
+
+<section id="commitment">
+<h2>One Commitment</h2>
+<p class="subtitle">The commitment should be small enough to do, but meaningful enough to matter.</p>
+<div class="grid">
+<div class="card">
+<h3>Commitment Options</h3>
+<label><input type="radio" name="commit"> Do 5 minutes of WorkKeys Arcade one time.</label>
+<label><input type="radio" name="commit"> Write down next week’s work schedule.</label>
+<label><input type="radio" name="commit"> Set out work clothes/items the night before one shift.</label>
+<label><input type="radio" name="commit"> Save a small amount from a paycheck.</label>
+<label><input type="radio" name="commit"> Ask one clarifying question at work instead of guessing.</label>
+<label><input type="radio" name="commit"> Complete one task within 5 minutes of thinking about it.</label>
+</div>
+<div class="card"><h3>Custom Commitment</h3><textarea id="customCommit" rows="6" placeholder="My one action before next session is..."></textarea><button onclick="saveCommitment()">Save Commitment</button><div id="savedCommit" class="feedback">Nothing saved yet.</div></div>
+</div>
+</section>
+
+<section id="coach">
+<h2>Coach Notes</h2>
+<div class="grid">
+<div class="card"><h3>Recommended Documentation Language</h3><p>Joe participated in a session focused on consistency, adult decision-making, workplace communication, and maintaining WorkKeys readiness. The session began with a review of his previous commitment and a follow-up discussion about his recent travel experience and future thinking. Joe completed workplace scenario analysis, practicing how to pause, clarify, communicate, and follow through in situations involving scheduling, feedback, unclear expectations, conflict, and responsibility. He also used the WorkKeys Arcade to continue practice through a more engaging format involving workplace documents, applied math, reading, and professional scenarios. The session concluded with a small, realistic commitment designed to build initiation and follow-through before the next meeting.</p></div>
+<div class="card"><h3>Watch For</h3><ul><li>Does he complete the small commitment?</li><li>Does he generate professional responses independently?</li><li>Does he tolerate harder WorkKeys questions without shutting down?</li><li>Does future planning feel motivating or overwhelming?</li></ul></div>
+</div>
+<button onclick="window.print()">Print / Save Summary</button>
+</section>
+</main>
+
+<div class="timerBox">
+<span class="mini">Timer</span><span id="timer" class="timerTime">00:00</span>
+<button class="secondary" onclick="timerStart()">Start</button>
+<button class="secondary" onclick="timerStop()">Stop</button>
+<button class="secondary" onclick="timerReset()">Reset</button>
+</div>
+
+<script>
+function showTab(id,btn){
+ document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.getElementById(id).classList.add('active'); btn.classList.add('active');
+}
+let seconds=0,timerInt=null;
+function renderTimer(){document.getElementById('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+function timerStart(){if(!timerInt){timerInt=setInterval(()=>{seconds++;renderTimer()},1000)}}
+function timerStop(){clearInterval(timerInt);timerInt=null}
+function timerReset(){timerStop();seconds=0;renderTimer()}
+
+const scenarios=[
+{title:'Inconsistent Hours',text:'You expected to work four days next week, but the schedule only has you listed for two. You want more money, but you also do not want to seem pushy.',context:'Skill focus: communication, initiative, professionalism.',choices:[['Complain to coworkers that the schedule is unfair.',0,'That may feel good in the moment, but it does not solve the problem and can damage your reputation.'],['Ask your supervisor if more hours may become available and say you are willing to pick up shifts.',3,'Strong: clear, respectful, and solution-focused.'],['Say nothing and hope the schedule changes later.',1,'This avoids conflict, but it also gives up control.'],['Threaten to quit unless you get more hours.',0,'Too extreme. It creates risk before trying a reasonable first step.']]},
+{title:'Feedback You Disagree With',text:'A supervisor says you were not moving fast enough on a task. You feel like you were doing it correctly and safely.',context:'Skill focus: emotional regulation and clarification.',choices:[['Argue immediately and explain why they are wrong.',0,'That can escalate the situation before you understand the concern.'],['Say, “I was trying to be careful. What pace are you looking for next time?”',3,'Strong: respectful, clarifies expectations, and keeps your dignity.'],['Ignore the feedback because you disagree.',1,'You may be right, but ignoring feedback can limit growth.'],['Rush next time even if safety suffers.',0,'Speed should not replace safety. Clarify the expectation.']]},
+{title:'Coworker Conflict',text:'A coworker keeps making sarcastic comments when you ask questions. You are getting annoyed and want to snap back.',context:'Skill focus: self-management under irritation.',choices:[['Snap back so they know not to mess with you.',0,'That may escalate the conflict and make you look unprofessional.'],['Keep it short: “I’m just trying to make sure it’s right.” Then refocus on the task.',3,'Strong: calm, direct, and task-focused.'],['Stop asking questions even when confused.',0,'That increases mistakes and makes the job harder.'],['Tell everyone else the coworker is a jerk.',0,'That spreads conflict instead of solving it.']]},
+{title:'Late Arrival Risk',text:'You realize you may be 10 minutes late because your ride is delayed.',context:'Skill focus: responsibility and communication.',choices:[['Say nothing unless someone asks later.',0,'A no-warning late arrival looks unreliable.'],['Message or call as soon as you know, explain briefly, and give an ETA.',3,'Strong: early communication reduces the problem.'],['Make up a better excuse.',0,'Dishonesty creates bigger problems.'],['Decide not to go because you are already late.',0,'That turns a small issue into a major reliability issue.']]},
+{title:'Low Motivation Day',text:'You get home tired and know you committed to five minutes of prep. You do not feel like doing it.',context:'Skill focus: initiation and reducing friction.',choices:[['Tell yourself you have to do a full hour or it does not count.',0,'That makes the task too big and increases avoidance.'],['Set a five-minute timer and stop when it ends if needed.',3,'Strong: this trains starting, which is the real skill.'],['Skip it because motivation is low.',1,'Understandable, but consistency is built when motivation is low.'],['Wait until late at night and hope energy returns.',1,'Possible, but this often leads to skipping.']]},
+{title:'Paycheck Planning',text:'You get paid and want to spend most of it right away. You also know you will need gas and food before the next check.',context:'Skill focus: delayed gratification and planning.',choices:[['Spend first and figure out gas later.',0,'That creates avoidable stress.'],['Set aside gas/required money first, then decide what is left.',3,'Strong: needs before wants gives more freedom later.'],['Save everything and buy nothing fun.',1,'Responsible, but unrealistic if it creates resentment.'],['Ask someone else for money if needed.',0,'That keeps the problem external instead of building control.']]}
+];
+const bossScenarios=[
+{title:'Boss-Level: Schedule + Money + Communication',text:'You are only scheduled two days next week. You want more hours, but you also have one day where you need to be home. Your supervisor is busy and does not like long conversations.',context:'Task: create a short, professional message that asks about extra hours while clearly stating your one unavailable day.',ideal:'Strong answer: “I saw I’m scheduled two days next week. If more hours open up, I’d be willing to pick up shifts. I’m unavailable Thursday, but I can work the other days.”'},
+{title:'Boss-Level: Feedback + Self-Control',text:'A coworker criticizes how you did a task in front of someone else. You feel embarrassed and angry, but you still need to finish the shift.',context:'Task: choose what to do immediately, what to say if anything, and what to do after you cool down.',ideal:'Strong answer should separate immediate self-control from later communication: stay calm, finish the task, ask for specific feedback privately if needed.'},
+{title:'Boss-Level: WorkKeys + Future Planning',text:'You still want the trade path next year, but your current job schedule changes every week. Studying feels hard to fit in.',context:'Task: design a realistic weekly plan that does not depend on motivation.',ideal:'Strong answer should use tiny habits: one or two 5–10 minute sessions, a trigger such as after dinner or before gaming, and a backup day.'}
+];
+let scXP=0,scDone=0;
+function updateSc(){const level=Math.max(1,Math.floor(scXP/100)+1);document.getElementById('scXP').textContent=scXP;document.getElementById('scDone').textContent=scDone;document.getElementById('scLevel').textContent=level;document.getElementById('scBar').style.width=Math.min(100,scXP%100)+'%'}
+function newScenario(){
+ const s=scenarios[Math.floor(Math.random()*scenarios.length)];
+ document.getElementById('scTitle').textContent=s.title;document.getElementById('scText').textContent=s.text;
+ document.getElementById('scContext').innerHTML='<p class="pill">'+s.context+'</p>';document.getElementById('scFeedback').textContent='Choose a response, then explain why.';document.getElementById('scExplain').value='';
+ const box=document.getElementById('scChoices');box.innerHTML='';
+ s.choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c[0];b.onclick=()=>{[...box.children].forEach(x=>x.disabled=true);b.classList.add(c[1]===3?'correct':c[1]===0?'wrong':'');const points=c[1]*10;scXP+=points;scDone++;document.getElementById('scFeedback').textContent=c[2]+' XP earned: '+points+'.';updateSc()};box.appendChild(b)});
+}
+function newBossScenario(){
+ const s=bossScenarios[Math.floor(Math.random()*bossScenarios.length)];
+ document.getElementById('scTitle').textContent=s.title;document.getElementById('scText').textContent=s.text;
+ document.getElementById('scContext').innerHTML='<p class="pill">'+s.context+'</p>';
+ document.getElementById('scChoices').innerHTML='<button class="good" onclick="awardBoss()">Award Boss-Level XP After Discussion</button><button class="secondary" onclick="showBossHint()">Show Coach Hint</button>';
+ document.getElementById('scFeedback').textContent='Use the explain box. Build a complete response.';window.currentBossIdeal=s.ideal;
+}
+function showBossHint(){document.getElementById('scFeedback').textContent=window.currentBossIdeal || 'No hint loaded.'}
+function awardBoss(){scXP+=40;scDone++;updateSc();document.getElementById('scFeedback').textContent='Boss-Level XP awarded: +40. Strong discussion and reasoning matter here.'}
+function resetScenarios(){scXP=0;scDone=0;updateSc();document.getElementById('scTitle').textContent='Click “New Scenario” to begin.';document.getElementById('scText').textContent='Scenario text will appear here.';document.getElementById('scContext').innerHTML='';document.getElementById('scChoices').innerHTML='';document.getElementById('scFeedback').textContent='Feedback will appear here.'}
+function saveCommitment(){const txt=document.getElementById('customCommit').value.trim();const checked=[...document.querySelectorAll('input[name="commit"]')].find(x=>x.checked);const val=txt||(checked?checked.parentElement.textContent.trim():'No commitment selected yet.');localStorage.setItem('joe_session11_commitment',val);document.getElementById('savedCommit').textContent='Saved: '+val}
+window.onload=()=>{updateSc();const saved=localStorage.getItem('joe_session11_commitment');if(saved)document.getElementById('savedCommit').textContent='Saved: '+saved}
+</script>
+</body>
+</html>
