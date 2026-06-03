@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WORKKEYS ARCADE</title>
+<style>
+:root{
+  --bg:#05070f;--panel:#0c1020;--panel2:#111830;
+  --neon:#39f5ff;--pink:#ff4fd8;--yellow:#ffe45c;
+  --green:#44ff88;--red:#ff4060;--orange:#ff9f43;
+  --text:#eef2ff;--muted:#8890c0;
+  --border:rgba(255,255,255,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:"Trebuchet MS",system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  background-image:
+    radial-gradient(circle at 20% 20%,rgba(57,245,255,.10),transparent 40%),
+    radial-gradient(circle at 80% 80%,rgba(255,79,216,.10),transparent 40%);
+  min-height:100vh;
+}
+/* scanlines */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.04) 0px,rgba(0,0,0,.04) 1px,transparent 1px,transparent 4px);
+}
+/* ---- SCREENS ---- */
+.screen{display:none;min-height:100vh;padding:20px 16px 60px}
+.screen.on{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* TITLE SCREEN */
+#title-screen{text-align:center;gap:18px}
+.arcade-title{
+  font-size:clamp(2.4rem,8vw,5.5rem);
+  letter-spacing:4px;font-weight:900;
+  color:var(--yellow);
+  text-shadow:0 0 10px var(--yellow),0 0 28px var(--pink),0 0 60px rgba(255,228,92,.4);
+  animation:flicker 3s infinite;
+  line-height:1.1;
+}
+@keyframes flicker{0%,93%,97%,100%{opacity:1}94%,96%{opacity:.6}}
+.arcade-sub{
+  font-size:clamp(1rem,2.5vw,1.5rem);
+  color:var(--neon);letter-spacing:3px;
+  text-shadow:0 0 8px var(--neon);
+  animation:blink 1.3s steps(1) infinite;
+}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.coin-msg{color:var(--muted);font-size:.9rem;letter-spacing:2px;margin-top:8px}
+.mode-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:14px;width:min(800px,96vw);margin-top:20px;
+}
+.mode-btn{
+  background:var(--panel2);border:2px solid rgba(57,245,255,.35);
+  border-radius:16px;padding:22px 16px;cursor:pointer;
+  transition:all .15s;color:var(--text);text-align:center;
+}
+.mode-btn:hover{
+  border-color:var(--neon);
+  box-shadow:0 0 20px rgba(57,245,255,.25);
+  transform:translateY(-3px);
+}
+.mode-icon{font-size:2.2rem;margin-bottom:8px}
+.mode-name{font-size:1.1rem;font-weight:700;color:var(--yellow);margin-bottom:4px}
+.mode-desc{font-size:.82rem;color:var(--muted);line-height:1.4}
+.hi-scores{margin-top:18px;text-align:center;color:var(--muted);font-size:.82rem}
+.hi-scores strong{color:var(--yellow);letter-spacing:1px}
+
+/* ---- GAME SCREEN ---- */
+#game-screen{display:none;padding:0;min-height:0;align-items:stretch;justify-content:flex-start}
+#game-screen.on{display:flex;flex-direction:column}
+.hud{
+  background:#060910;border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:50;
+}
+.hud-stat{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:5px 12px;text-align:center;min-width:70px;
+}
+.hud-stat small{display:block;font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.hud-stat strong{font-size:1.15rem;color:#fff}
+.hud-stat.accent strong{color:var(--yellow)}
+.hud-stat.good strong{color:var(--green)}
+.hud-stat.bad strong{color:var(--red)}
+.combo-flame{color:var(--orange);font-size:.9rem;animation:pulse .6s infinite alternate}
+@keyframes pulse{from{opacity:.7}to{opacity:1}}
+.hud-back{margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);cursor:pointer;font-size:.82rem}
+.hud-back:hover{color:#fff;border-color:#fff}
+
+.game-body{flex:1;display:flex;gap:0;overflow:hidden}
+.main-col{flex:1;overflow-y:auto;padding:20px 16px 40px;max-width:780px;margin:0 auto;width:100%}
+
+/* card */
+.q-card{
+  background:var(--panel);border:2px solid var(--border);
+  border-radius:18px;padding:22px;
+  box-shadow:0 0 40px rgba(0,0,0,.5),inset 0 0 20px rgba(57,245,255,.03);
+}
+.q-meta{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.cat-badge{
+  border-radius:999px;padding:4px 13px;font-size:.74rem;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.cat-math{background:rgba(68,255,136,.15);color:var(--green);border:1px solid rgba(68,255,136,.35)}
+.cat-reading{background:rgba(57,245,255,.15);color:var(--neon);border:1px solid rgba(57,245,255,.35)}
+.cat-docs{background:rgba(255,228,92,.15);color:var(--yellow);border:1px solid rgba(255,228,92,.35)}
+.cat-scenario{background:rgba(255,79,216,.15);color:var(--pink);border:1px solid rgba(255,79,216,.35)}
+.q-num{color:var(--muted);font-size:.82rem;margin-left:auto}
+.difficulty{font-size:.75rem;padding:3px 9px;border-radius:99px;border:1px solid}
+.d-easy{color:var(--green);border-color:rgba(68,255,136,.4)}
+.d-medium{color:var(--yellow);border-color:rgba(255,228,92,.4)}
+.d-hard{color:var(--red);border-color:rgba(255,64,96,.4)}
+
+/* passage/doc */
+.doc-block{
+  background:rgba(57,245,255,.05);border:1px solid rgba(57,245,255,.2);
+  border-left:4px solid var(--neon);
+  border-radius:10px;padding:12px 14px;margin-bottom:16px;
+  font-size:.92rem;line-height:1.7;color:#cee8ff;
+}
+.doc-block table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.88rem}
+.doc-block th{text-align:left;padding:5px 8px;border-bottom:1px solid rgba(57,245,255,.25);color:var(--neon);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px}
+.doc-block td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.05)}
+.doc-block tr:last-child td{border-bottom:none}
+
+.q-text{font-size:clamp(1rem,2.3vw,1.25rem);line-height:1.55;margin-bottom:18px;color:#f0f4ff}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{
+  text-align:left;padding:13px 16px;
+  background:linear-gradient(135deg,#161e42,#0f1530);
+  border:2px solid rgba(255,255,255,.12);border-radius:12px;
+  color:var(--text);font-size:.97rem;cursor:pointer;
+  transition:all .15s;display:flex;align-items:flex-start;gap:10px;
+}
+.choice:hover:not(:disabled){
+  border-color:var(--neon);
+  box-shadow:0 0 14px rgba(57,245,255,.18);
+  transform:translateX(3px);
+}
+.choice.correct{background:linear-gradient(135deg,#0d3d22,#0a2c1a);border-color:var(--green);color:#a0ffcc}
+.choice.wrong{background:linear-gradient(135deg,#3d0d18,#2a0810);border-color:var(--red);color:#ffb3b3}
+.choice:disabled{cursor:default}
+.choice-letter{
+  font-weight:700;font-size:.85rem;min-width:22px;height:22px;
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.08);flex-shrink:0;margin-top:1px;
+}
+.correct .choice-letter{background:rgba(68,255,136,.25);color:var(--green)}
+.wrong .choice-letter{background:rgba(255,64,96,.25);color:var(--red)}
+
+/* feedback */
+.feedback-block{
+  margin-top:16px;padding:14px 16px;border-radius:12px;
+  display:none;line-height:1.6;font-size:.95rem;
+}
+.feedback-block.show{display:block}
+.feedback-block.ok{background:rgba(68,255,136,.08);border:1px solid rgba(68,255,136,.3);color:#a0ffc8}
+.feedback-block.bad{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);color:#ffb3b3}
+.feedback-block .pts{float:right;font-weight:700;color:var(--yellow);font-size:1.1rem}
+
+/* solution */
+.solution-box{
+  display:none;margin-top:12px;padding:14px 16px;
+  background:rgba(57,245,255,.05);border:1px solid rgba(57,245,255,.2);
+  border-radius:12px;font-size:.88rem;line-height:1.7;color:#c8e8ff;
+}
+.solution-box.show{display:block}
+.solution-box h4{color:var(--neon);margin-bottom:8px;font-size:.85rem;letter-spacing:.5px;text-transform:uppercase}
+
+/* controls */
+.q-controls{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn{
+  border:none;border-radius:10px;padding:10px 18px;
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.btn-primary{background:linear-gradient(90deg,var(--pink),#7c5cff);color:#fff;box-shadow:0 0 14px rgba(255,79,216,.25)}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,.14)}
+.btn-hint{background:rgba(255,228,92,.1);color:var(--yellow);border:1px solid rgba(255,228,92,.3)}
+.btn-hint:hover{background:rgba(255,228,92,.18)}
+
+/* progress */
+.xp-bar-wrap{background:#080c1a;border:1px solid var(--border);border-radius:999px;height:8px;overflow:hidden;margin-top:14px}
+.xp-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--neon),var(--pink));transition:width .5s;box-shadow:0 0 10px var(--neon)}
+
+/* RESULTS SCREEN */
+#results-screen.on{display:flex;flex-direction:column;gap:14px;text-align:center;padding:40px 20px}
+.result-title{font-size:clamp(2rem,6vw,4rem);color:var(--yellow);text-shadow:0 0 14px var(--yellow),0 0 30px var(--pink);font-weight:900}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;width:min(600px,96vw);margin:0 auto}
+.stat-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.stat-box .val{font-size:2rem;font-weight:900;color:var(--yellow)}
+.stat-box .lbl{font-size:.78rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.grade-msg{font-size:1.1rem;color:var(--neon);margin:10px 0}
+.result-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+
+/* toast */
+.toast{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-120px);
+  background:#111735;border:2px solid var(--yellow);color:#fff;
+  padding:12px 22px;border-radius:14px;box-shadow:0 0 28px rgba(255,228,92,.3);
+  z-index:1000;font-weight:700;text-align:center;transition:.3s;max-width:90vw;
+  font-size:1rem;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* confetti canvas */
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:998}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#060910}
+::-webkit-scrollbar-thumb{background:#1a2050;border-radius:99px}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- TITLE SCREEN -->
+<div class="screen on" id="title-screen">
+  <div class="arcade-title">WORKKEYS<br>ARCADE</div>
+  <div class="arcade-sub">INSERT COIN TO CONTINUE</div>
+  <div class="coin-msg">SELECT YOUR GAME MODE</div>
+  <div class="mode-grid">
+    <div class="mode-btn" onclick="startMode('all')">
+      <div class="mode-icon">🕹️</div>
+      <div class="mode-name">FULL ARCADE</div>
+      <div class="mode-desc">All 110+ questions • All categories • Adaptive difficulty</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('math')">
+      <div class="mode-icon">🔢</div>
+      <div class="mode-name">MATH ZONE</div>
+      <div class="mode-desc">Applied math only • Wages, ratios, measurements</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('reading')">
+      <div class="mode-icon">📖</div>
+      <div class="mode-name">READING RAID</div>
+      <div class="mode-desc">Workplace reading comprehension • Policies & memos</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('docs')">
+      <div class="mode-icon">📋</div>
+      <div class="mode-name">DOC DUNGEON</div>
+      <div class="mode-desc">Tables, schedules, payslips, procedures</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('scenario')">
+      <div class="mode-icon">💼</div>
+      <div class="mode-name">SCENARIO BOSS</div>
+      <div class="mode-desc">Workplace judgment • Communication • Professionalism</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('blitz')">
+      <div class="mode-icon">⚡</div>
+      <div class="mode-name">SPEED BLITZ</div>
+      <div class="mode-desc">Random 15 questions • Race the clock • Bonus points</div>
+    </div>
+  </div>
+  <div class="hi-scores" id="hi-scores-display"></div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="game-screen">
+  <div class="hud">
+    <div class="hud-stat accent"><small>SCORE</small><strong id="hud-score">0</strong></div>
+    <div class="hud-stat good"><small>CORRECT</small><strong id="hud-correct">0</strong></div>
+    <div class="hud-stat bad"><small>WRONG</small><strong id="hud-wrong">0</strong></div>
+    <div class="hud-stat"><small>Q</small><strong id="hud-q">1/20</strong></div>
+    <div class="hud-stat" id="hud-combo-box" style="display:none"><small>COMBO</small><strong id="hud-combo" class="combo-flame">🔥 x1</strong></div>
+    <div class="hud-stat" id="hud-timer-box" style="display:none"><small>TIME</small><strong id="hud-timer" style="color:var(--neon)">2:00</strong></div>
+    <div class="hud-stat"><small>HINTS</small><strong id="hud-hints">3</strong></div>
+    <button class="hud-back" onclick="goHome()">◀ MENU</button>
+  </div>
+  <div class="game-body">
+    <div class="main-col">
+      <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+      <div style="height:16px"></div>
+      <div class="q-card" id="q-card">
+        <div class="q-meta">
+          <span class="cat-badge" id="q-cat">MATH</span>
+          <span class="difficulty" id="q-diff">Medium</span>
+          <span class="q-num" id="q-num">Q 1</span>
+        </div>
+        <div class="doc-block" id="q-doc" style="display:none"></div>
+        <div class="q-text" id="q-text"></div>
+        <div class="choices" id="choices"></div>
+        <div class="feedback-block" id="feedback"></div>
+        <div class="solution-box" id="solution"></div>
+        <div class="q-controls">
+          <button class="btn btn-primary" id="btn-next" style="display:none" onclick="nextQ()">NEXT ▶</button>
+          <button class="btn btn-hint" id="btn-hint" onclick="useHint()">💡 HINT</button>
+          <button class="btn btn-secondary" id="btn-reveal" onclick="revealAnswer()">SHOW ANSWER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div class="screen" id="results-screen">
+  <div class="result-title" id="result-title">GAME OVER</div>
+  <div class="grade-msg" id="grade-msg"></div>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="val" id="r-score">0</div><div class="lbl">Final Score</div></div>
+    <div class="stat-box"><div class="val" id="r-correct">0</div><div class="lbl">Correct</div></div>
+    <div class="stat-box"><div class="val" id="r-pct">0%</div><div class="lbl">Accuracy</div></div>
+    <div class="stat-box"><div class="val" id="r-combo">x1</div><div class="lbl">Best Combo</div></div>
+  </div>
+  <div class="result-btns">
+    <button class="btn btn-primary" onclick="goHome()">PLAY AGAIN</button>
+    <button class="btn btn-secondary" onclick="reviewWrong()">REVIEW WRONG</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const BANK = [
+// ---- MATH ----
+{cat:'math',diff:'medium',doc:null,
+q:'You earn $12.50 per hour. Last week you worked 38 hours and received a $25 bonus. What was your total pay?',
+c:['$450.00','$475.00','$500.00','$437.50'],a:2,
+s:'$12.50 × 38 = $475.00 hourly pay. Plus $25 bonus = $500.00.'},
+{cat:'math',diff:'easy',doc:null,
+q:'You worked Mon–Fri with hours: Mon 6h, Tue 7.5h, Wed 8h, Thu 6.5h, Fri 7h. Total hours worked?',
+c:['33 hours','34 hours','35 hours','36 hours'],a:2,
+s:'6 + 7.5 + 8 + 6.5 + 7 = 35 hours. Add step by step.'},
+{cat:'math',diff:'medium',doc:null,
+q:'An 18% gratuity is added to tables of 6+. A table of 8 has a $120 bill. What is the gratuity?',
+c:['$18.00','$21.60','$24.00','$14.40'],a:1,
+s:'18% × $120 = $21.60. Think: 10% = $12, 8% = $9.60 → total $21.60.'},
+{cat:'math',diff:'hard',doc:null,
+q:'You earn $11.25/hr and worked 42 hours. Employer pays 1.5× for hours over 40. Total pay?',
+c:['$472.50','$483.75','$495.00','$450.00'],a:1,
+s:'Regular: 40 × $11.25 = $450. OT: 2 × $16.875 = $33.75. Total = $483.75.'},
+{cat:'math',diff:'easy',doc:null,
+q:'A supply order costs $346. Your monthly budget is $500 and you\'ve spent $187. Are you over budget?',
+c:['No — $33 under budget','Yes — $33 over budget','Exactly at budget','Cannot determine'],a:1,
+s:'$187 + $346 = $533. $533 − $500 = $33 over budget.'},
+{cat:'math',diff:'medium',doc:null,
+q:'At end of shift the register should have $250. You count $243.75. What is the shortage?',
+c:['$6.25','$7.75','$6.75','$5.25'],a:0,
+s:'$250.00 − $243.75 = $6.25 shortage.'},
+{cat:'math',diff:'easy',doc:null,
+q:'Your lunch break is 30 minutes. You started at 12:47 PM. When should you return?',
+c:['1:07 PM','1:17 PM','1:27 PM','1:37 PM'],a:1,
+s:'12:47 to 1:00 = 13 min. 30 − 13 = 17 more → 1:17 PM.'},
+{cat:'math',diff:'medium',doc:null,
+q:'You worked 5 days. 18 miles round trip each day. Employer reimburses $0.67/mile. Total reimbursement?',
+c:['$54.00','$60.30','$66.00','$58.90'],a:1,
+s:'5 × 18 = 90 miles. 90 × $0.67 = $60.30.'},
+{cat:'math',diff:'medium',doc:null,
+q:'Shift starts 3:45 PM and ends 11:15 PM. How long is the shift?',
+c:['6h 45min','7h 30min','7h 15min','8h'],a:1,
+s:'3:45 to 11:45 = 8h. But ends 30 min early → 7h 30min.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Team needs 360 units by end of 8-hr shift. You\'ve done 210 in first 5 hours. Units/hour needed in remaining 3 hours?',
+c:['45/hr','50/hr','60/hr','72/hr'],a:1,
+s:'360 − 210 = 150 remaining. 150 ÷ 3 = 50/hr.'},
+{cat:'math',diff:'medium',doc:null,
+q:'3 types of cans: Brand A 48, Brand B 36, Brand C 24. What % of total is Brand A?',
+c:['40%','44.4%','48%','50%'],a:1,
+s:'Total = 108. 48 ÷ 108 = 0.444 = 44.4%.'},
+{cat:'math',diff:'easy',doc:null,
+q:'Paycheck is $387.50. You save 20%. How much do you save?',
+c:['$65.00','$77.50','$80.00','$75.00'],a:1,
+s:'10% = $38.75, so 20% = $77.50.'},
+{cat:'math',diff:'medium',doc:null,
+q:'A jacket costs $64 and is 15% off. What is the sale price?',
+c:['$49.00','$54.40','$56.00','$59.00'],a:1,
+s:'15% of $64 = $9.60. $64 − $9.60 = $54.40.'},
+{cat:'math',diff:'hard',doc:null,
+q:'A warehouse packs 18 boxes/pallet, 7 pallets/truck. An order needs 955 boxes. How many FULL trucks needed and boxes remaining after full trucks loaded?',
+c:['7 trucks, 73 boxes remain','7 trucks, 0 remain','8 trucks, 31 remain','9 trucks, 0 remain'],a:0,
+s:'1 truck = 18 × 7 = 126 boxes. 955 ÷ 126 = 7 remainder 73. Answer: 7 full trucks, 73 boxes remain.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Worker earns $19.40/hr. Works 8 regular hours, then 2.5 OT hours at time-and-a-half, plus a $24 bonus. Total pay before taxes?',
+c:['$227.70','$251.95','$275.05','$299.10'],a:1,
+s:'Regular = 8 × 19.40 = $155.20. OT = 2.5 × (19.40 × 1.5) = 2.5 × 29.10 = $72.75. Total = $155.20 + $72.75 + $24 = $251.95.'},
+{cat:'math',diff:'medium',doc:null,
+q:'A 5:12 concentrate-to-water mix. 68 oz total needed. How many oz of concentrate?',
+c:['20 oz','23 oz','25 oz','28 oz'],a:0,
+s:'Total parts = 17. Concentrate = 5/17 × 68 = 20 oz.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Machine shop packs bolts in boxes of 135. Order requires 2,160 bolts. Full boxes needed and bolts remaining?',
+c:['14 boxes, 90 bolts left','15 boxes, 45 left','16 boxes, 0 left','16 boxes, 30 left'],a:2,
+s:'2160 ÷ 135 = 16 exactly. 16 full boxes, 0 bolts left.'},
+{cat:'math',diff:'medium',doc:null,
+q:'Delivery van travels 210 miles on 7.5 gallons. How far on 12.4 gallons?',
+c:['336 miles','347 miles','358 miles','369 miles'],a:1,
+s:'MPG = 210 ÷ 7.5 = 28. 28 × 12.4 = 347.2 miles.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Paycheck $1,080. Deductions: 6.2% Social Security + 1.45% Medicare. Total deduction?',
+c:['$78.12','$82.62','$86.40','$91.80'],a:1,
+s:'6.2% × 1080 = $66.96. 1.45% × 1080 = $15.66. Total = $82.62.'},
+{cat:'math',diff:'medium',doc:null,
+q:'A pump fills 375 gallons in 25 minutes. How many gallons in 13 minutes?',
+c:['175 gallons','195 gallons','215 gallons','235 gallons'],a:1,
+s:'Rate = 375 ÷ 25 = 15 gpm. 15 × 13 = 195 gallons.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Item costs $84. Marked down 15%, then $8 coupon applied, then 6% tax. Final price?',
+c:['$67.20','$72.11','$73.96','$75.80'],a:0,
+s:'$84 × 0.85 = $71.40. − $8 = $63.40. × 1.06 = $67.204 ≈ $67.20.'},
+{cat:'math',diff:'medium',doc:null,
+q:'Tank holds 280L. Drained at 16L/min for 9 minutes, then 18L added back. How much remains?',
+c:['126L','154L','170L','190L'],a:1,
+s:'Drained = 16 × 9 = 144. Remaining = 280 − 144 = 136. + 18 = 154L.'},
+{cat:'math',diff:'hard',doc:null,
+q:'Electric bill: $38 base + $0.13/kWh for first 1,500 kWh + $0.16/kWh above 1,500. Company uses 1,860 kWh. Total bill?',
+c:['$240.80','$258.40','$290.60','$279.20'],a:2,
+s:'1,500 × $0.13 = $195. Extra 360 × $0.16 = $57.60. + $38 base = $290.60.'},
+{cat:'math',diff:'medium',doc:null,
+q:'Packing boxes: each holds 12 items. You have 85 items. Full boxes and leftovers?',
+c:['7 full, 1 left','6 full, 13 left','7 full, 0 left','8 full, 0 left'],a:0,
+s:'85 ÷ 12 = 7 remainder 1. 7 × 12 = 84. 1 item left over.'},
+{cat:'math',diff:'medium',doc:null,
+q:'8 shelves, 24 items each. You have 175 items. Full shelves you can complete and items left over?',
+c:['7 full shelves, 7 left','7 full shelves, 0 left','6 full shelves, 31 left','8 full shelves, 0 left'],a:0,
+s:'175 ÷ 24 = 7 remainder 7. 7 × 24 = 168. 7 items left over.'},
+
+// ---- READING ----
+{cat:'reading',diff:'medium',doc:null,
+q:'Store return policy: "Returns within 30 days with receipt. Items must be unused and in original packaging." Customer comes 25 days after purchase with receipt, but tags removed. What does the policy say?',
+c:['Accept — within 30 days','Deny — tags removed, not original packaging','Policy does not address this','Accept — has a receipt'],a:1,
+s:'Policy requires unused + original packaging. Removed tags = not in original condition. Deny.'},
+{cat:'reading',diff:'easy',doc:null,
+q:'Memo: "Effective immediately, all staff must wear non-slip footwear in the kitchen. Violations result in written warning." Which is a valid conclusion?',
+c:['Non-slip shoes are optional','Rule applies to new employees only','Working without non-slip shoes could mean a written warning','Rule applies during busy hours only'],a:2,
+s:'"All staff" and "violations will result in a written warning" are clear. Everyone. Always.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Job posting: "Must be available weekends and able to lift 30 lbs. Customer service experience preferred but not required." Which is accurate?',
+c:['Must have CS experience','Weekend availability is optional','No prior CS exp needed but must be available weekends','Lifting is optional'],a:2,
+s:'"Preferred but not required" = a plus, not mandatory. "Must" signals requirements.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Handbook: "Three unexcused absences in 90 days may result in termination." Joe has had 2. What does this mean?',
+c:['He is about to be fired','He is one absence from the threshold in the 90-day window','One more absence ever = automatic termination','Rule resets monthly'],a:1,
+s:'Two down, one more within the 90-day window triggers the policy. "May result in" = warning, not guarantee.'},
+{cat:'reading',diff:'easy',doc:null,
+q:'Safety sign: "This equipment must be operated by trained personnel only. Unauthorized use is prohibited." Main message?',
+c:['Anyone may use it with a supervisor nearby','Only trained staff may operate this','Equipment is out of service','Training is recommended but not required'],a:1,
+s:'"Must" and "prohibited" are absolute. No exceptions stated.'},
+{cat:'reading',diff:'easy',doc:null,
+q:'Notice: "All personal devices must be stored in lockers during working hours. Devices in pockets will be confiscated." What must an employee do with their phone?',
+c:['Keep it in pocket on silent','Leave it in their locker','Hand it to a manager','Keep it at the front desk'],a:1,
+s:'Lockers = required. "In pockets" is listed as a violation.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Training document: "Use open-ended questions to understand customer needs before offering solutions." What should an employee do?',
+c:['Offer a refund immediately','Ask yes/no questions','Ask questions that encourage the customer to explain first','Transfer to manager immediately'],a:2,
+s:'Open-ended = understand first, solve second.'},
+{cat:'reading',diff:'hard',doc:null,
+q:'Policy: "Submit time-off requests at least 10 business days before leave. Leave starts Thursday August 15 (non-holiday). Latest submission date?',
+c:['Monday Aug 5','Tuesday Aug 6','Wednesday Aug 7','Thursday Aug 8'],a:2,
+s:'Count back 10 business days from Thu Aug 15 (skip weekends). Latest date = Wed Aug 7.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Printer jam procedure: "Open Tray 2. If error persists, open rear panel. If still showing, power cycle." Tray 2 is clear but error remains. What next?',
+c:['Power cycle the printer','Open the rear access panel','Ignore and continue printing','Call maintenance'],a:1,
+s:'Tray 2 done → next step is rear panel. Follow the sequence.'},
+{cat:'reading',diff:'hard',doc:null,
+q:'Chemical label: "Store below 80°F. Do not expose to sunlight. Keep in ventilated area." Which storage follows ALL rules?',
+c:['Outdoor loading dock at 75°F in sunlight','Locked shed at 78°F, no ventilation','Shaded, ventilated indoor room at 72°F','Closed car trunk at 68°F'],a:2,
+s:'Must be: below 80°F ✓, no sunlight ✓, ventilated ✓. Only option C meets all three.'},
+{cat:'reading',diff:'hard',doc:null,
+q:'Policy: "Only certified employees may operate Forklift X. Trainees may during supervised sessions with supervisor log signature." Who is allowed?',
+c:['Trainee who watched a video alone','Certified employee without paperwork','Trainee in supervised session with signed log','Supervisor without Model X certification'],a:2,
+s:'Trainee + supervised session + signed log = all conditions met.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Fridge notice: "Food left after 5PM Friday discarded unless labeled for approved event or in approved sealed container." Unlabeled sandwich placed at 4:10 PM Friday is still there at 5:05 PM. What happens?',
+c:['Saved until Monday','Discarded after 5PM Friday','Moved to freezer','Nothing happens'],a:1,
+s:'Still there past 5PM and unlabeled → discarded.'},
+{cat:'reading',diff:'hard',doc:null,
+q:'Customer service script: "If caller asks about refunds → transfer to Billing. If defect → create service ticket then offer replacement. If BOTH → create ticket BEFORE transferring." Caller reports broken product AND wants refund. What first?',
+c:['Transfer to Billing immediately','Create a service ticket','Offer a replacement','Tell caller to email support'],a:1,
+s:'Both defect and refund = create service ticket first. Then transfer.'},
+{cat:'reading',diff:'medium',doc:null,
+q:'Handbook: "Part-time employees working more than 6 hours get one unpaid 30-min meal break. More than 9 hours get a second." Who gets exactly ONE break?',
+c:['5.5 hours','6 hours','7.5 hours','10 hours'],a:2,
+s:'More than 6 hours but not more than 9 hours = exactly one break. 7.5 qualifies.'},
+{cat:'reading',diff:'easy',doc:null,
+q:'Door sign: "Door locked 8AM–4PM, badge access required. After 4PM, may be manually opened." What can be inferred?',
+c:['Door is never locked','8AM–4PM requires badge access','After 4PM door is permanently locked','Only supervisors may open at any time'],a:1,
+s:'During 8–4, badge only. After 4 PM, manual OK.'},
+
+// ---- DOCS ----
+{cat:'docs',diff:'medium',
+doc:{title:'Employee Time-Off Request Policy',
+html:`<table><tr><th>Request Type</th><th>Notice Required</th><th>Approval</th></tr>
+<tr><td>Vacation (3+ days)</td><td>2 weeks</td><td>Manager</td></tr>
+<tr><td>Personal day (1–2 days)</td><td>48 hours</td><td>Manager</td></tr>
+<tr><td>Same-day emergency</td><td>ASAP</td><td>Notify manager</td></tr>
+<tr><td>Unpaid leave (&gt;1 week)</td><td>30 days</td><td>HR + Manager</td></tr></table>`},
+q:'Joe wants 4 days vacation starting in 10 days. What does he need per the policy?',
+c:['10 days > 48 hours, so it\'s fine','Cannot take time off, not enough notice','Needs manager approval; should have requested 2+ weeks out','Only HR needed since it\'s 3+ days'],a:2,
+s:'Vacation (3+ days) = 2 weeks notice + manager approval. 10 days < 14 days. Cutting it close.'},
+{cat:'docs',diff:'medium',
+doc:{title:'Work Schedule — Week of June 2',
+html:`<table><tr><th>Employee</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
+<tr><td>Joe</td><td>8–4</td><td>OFF</td><td>10–6</td><td>8–4</td><td>12–8</td></tr>
+<tr><td>Maria</td><td>OFF</td><td>8–4</td><td>8–4</td><td>OFF</td><td>8–4</td></tr>
+<tr><td>Devon</td><td>12–8</td><td>12–8</td><td>OFF</td><td>12–8</td><td>OFF</td></tr></table>`},
+q:'On which days are Joe and Maria BOTH scheduled to work?',
+c:['Monday and Wednesday','Wednesday and Friday','Tuesday and Thursday','Friday only'],a:1,
+s:'Joe: Mon, Wed, Thu, Fri. Maria: Tue, Wed, Fri. Overlap = Wednesday and Friday.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Paycheck Stub — Joe',
+html:`<table><tr><th>Category</th><th>Amount</th></tr>
+<tr><td>Gross Pay</td><td>$520.00</td></tr>
+<tr><td>Federal Tax</td><td>–$52.00</td></tr>
+<tr><td>State Tax</td><td>–$18.20</td></tr>
+<tr><td>Social Security</td><td>–$32.24</td></tr>
+<tr><td>Medicare</td><td>–$7.54</td></tr>
+<tr><td><strong>Net Pay</strong></td><td><strong>$410.02</strong></td></tr></table>`},
+q:'How much was deducted in total for federal and state taxes ONLY?',
+c:['$70.20','$109.98','$52.00','$91.78'],a:0,
+s:'Federal ($52) + State ($18.20) = $70.20. SS and Medicare are separate.'},
+{cat:'docs',diff:'medium',
+doc:{title:'Break Policy',
+html:`<p><strong>Under 4 hours:</strong> No break required.<br>
+<strong>4–6 hours:</strong> One 15-min paid break.<br>
+<strong>Over 6 hours:</strong> One 30-min unpaid meal break + one 15-min paid break.<br>
+Breaks cannot be saved to leave early.</p>`},
+q:'Joe is working an 8-hour shift. What breaks is he entitled to?',
+c:['One 15-min paid only','One 30-min unpaid + one 15-min paid','Two 30-min unpaid breaks','No breaks without permission'],a:1,
+s:'8 hours = over 6 hours. Gets 30-min unpaid + 15-min paid.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Product Price List',
+html:`<table><tr><th>Item</th><th>Unit Price</th><th>Bulk (10+)</th></tr>
+<tr><td>Paper towels</td><td>$2.49</td><td>$2.10</td></tr>
+<tr><td>Cleaning spray</td><td>$3.75</td><td>$3.20</td></tr>
+<tr><td>Latex gloves (box)</td><td>$5.99</td><td>$5.25</td></tr></table>`},
+q:'You need to order 12 boxes of latex gloves. What is the total cost?',
+c:['$71.88','$63.00','$59.88','$69.00'],a:1,
+s:'12 ≥ 10, so bulk price applies: $5.25 × 12 = $63.00.'},
+{cat:'docs',diff:'medium',
+doc:{title:'Training Completion Log',
+html:`<table><tr><th>Module</th><th>Required</th><th>Joe\'s Status</th></tr>
+<tr><td>Food safety</td><td>Yes</td><td>Complete</td></tr>
+<tr><td>Fire safety</td><td>Yes</td><td>Complete</td></tr>
+<tr><td>Customer service</td><td>Yes</td><td>Not started</td></tr>
+<tr><td>Harassment prevention</td><td>Yes</td><td>In progress</td></tr>
+<tr><td>Equipment operation</td><td>No</td><td>Not started</td></tr></table>`},
+q:'Which required modules has Joe NOT fully completed?',
+c:['Food safety and fire safety','Customer service only','Customer service and harassment prevention','All complete'],a:2,
+s:'Customer service = not started. Harassment prevention = in progress. Equipment operation not required.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Inventory Count Sheet — Aisle 4',
+html:`<table><tr><th>Item</th><th>Expected</th><th>Counted</th><th>Diff</th></tr>
+<tr><td>Soup (can)</td><td>60</td><td>57</td><td>–3</td></tr>
+<tr><td>Pasta (box)</td><td>48</td><td>51</td><td>+3</td></tr>
+<tr><td>Sauce (jar)</td><td>36</td><td>36</td><td>0</td></tr>
+<tr><td>Rice (bag)</td><td>24</td><td>19</td><td>–5</td></tr></table>`},
+q:'Which item has the largest shortage?',
+c:['Soup (–3)','Pasta (+3)','Sauce (0)','Rice (–5)'],a:3,
+s:'Rice is short by 5 units, the largest shortage.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Disciplinary Action Policy',
+html:`<p><strong>Step 1:</strong> Verbal warning (documented)<br>
+<strong>Step 2:</strong> Written warning<br>
+<strong>Step 3:</strong> Final warning + PIP<br>
+<strong>Step 4:</strong> Termination<br><br>
+<em>Serious violations (theft, harassment, safety) may skip to Step 3 or 4.</em></p>`},
+q:'Employee received a verbal warning last month and made another violation. What comes next?',
+c:['Termination','Another verbal warning','Written warning','PIP only'],a:2,
+s:'After verbal warning (Step 1), next step is written warning (Step 2).'},
+{cat:'docs',diff:'medium',
+doc:{title:'Shipping Options',
+html:`<table><tr><th>Method</th><th>Price/Pkg</th><th>Days</th><th>Sat Delivery</th></tr>
+<tr><td>Ground</td><td>$8.60</td><td>6</td><td>No</td></tr>
+<tr><td>Two-Day</td><td>$14.95</td><td>2</td><td>Yes</td></tr>
+<tr><td>Express</td><td>$22.40</td><td>1</td><td>Yes</td></tr></table>`},
+q:'What is the cost difference between Express and Ground for 4 packages?',
+c:['$54.40','$55.20','$55.80','$57.60'],a:1,
+s:'Per pkg diff = $22.40 − $8.60 = $13.80. × 4 = $55.20.'},
+{cat:'docs',diff:'medium',
+doc:{title:'Shipping Options',
+html:`<table><tr><th>Method</th><th>Price/Pkg</th><th>Days</th><th>Sat Delivery</th></tr>
+<tr><td>Ground</td><td>$8.60</td><td>6</td><td>No</td></tr>
+<tr><td>Two-Day</td><td>$14.95</td><td>2</td><td>Yes</td></tr>
+<tr><td>Express</td><td>$22.40</td><td>1</td><td>Yes</td></tr></table>`},
+q:'Which shipping methods offer Saturday delivery?',
+c:['Ground only','Two-Day only','Express only','Two-Day and Express'],a:3,
+s:'Saturday delivery: Two-Day and Express both offer it.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Production Report — Week of May 12',
+html:`<table><tr><th>Day</th><th>Plan</th><th>Actual</th></tr>
+<tr><td>Monday</td><td>450</td><td>432</td></tr>
+<tr><td>Tuesday</td><td>450</td><td>468</td></tr>
+<tr><td>Wednesday</td><td>480</td><td>474</td></tr>
+<tr><td>Thursday</td><td>480</td><td>495</td></tr>
+<tr><td>Friday</td><td>490</td><td>481</td></tr></table>`},
+q:'On which day did actual production EXCEED the plan by the most?',
+c:['Monday','Tuesday','Thursday','Friday'],a:2,
+s:'Tue +18, Thu +15. Wait — Tue: 468−450=18. Thu: 495−480=15. Tuesday exceeds most by 18.'},
+{cat:'docs',diff:'hard',
+doc:{title:'Production Report — Week of May 12',
+html:`<table><tr><th>Day</th><th>Plan</th><th>Actual</th></tr>
+<tr><td>Monday</td><td>450</td><td>432</td></tr>
+<tr><td>Tuesday</td><td>450</td><td>468</td></tr>
+<tr><td>Wednesday</td><td>480</td><td>474</td></tr>
+<tr><td>Thursday</td><td>480</td><td>495</td></tr>
+<tr><td>Friday</td><td>490</td><td>481</td></tr></table>`},
+q:'What is the total actual production for the week?',
+c:['2,340','2,350','2,360','2,370'],a:1,
+s:'432+468+474+495+481 = 2,350.'},
+
+// ---- WORKPLACE SCENARIOS ----
+{cat:'scenario',diff:'medium',doc:null,
+q:'Your manager changes your shift to a day you already have a doctor\'s appointment. What should you do?',
+c:['Skip appointment and work the shift','Call in sick without telling anyone why','Let manager know ASAP, explain the conflict, ask if a swap is possible','Tell a coworker to handle it'],a:2,
+s:'Early communication gives everyone time to find a solution. Shows responsibility.'},
+{cat:'scenario',diff:'easy',doc:null,
+q:'You accidentally charged a customer the wrong price. You notice after they\'ve left. What do you do?',
+c:['Hope nobody notices','Tell your manager right away and explain what happened','Blame the register','Wait to see if the customer calls'],a:1,
+s:'Reporting quickly = integrity. Managers prefer hearing it from you.'},
+{cat:'scenario',diff:'medium',doc:null,
+q:'A coworker keeps taking long breaks and you end up covering their tasks. Most professional approach?',
+c:['Complain loudly to other coworkers','Refuse their work and walk away','Talk to the coworker privately and calmly','Post about it on social media'],a:2,
+s:'Direct, private, calm = professional. Keeps things from escalating.'},
+{cat:'scenario',diff:'easy',doc:null,
+q:'You\'re going to be 10 minutes late to your shift. What should you do?',
+c:['Text your manager as soon as you know','Just show up late and hope nobody notices','Call in sick to avoid trouble','Ask a friend to cover without telling your manager'],a:0,
+s:'Even a short heads-up shows respect and professionalism.'},
+{cat:'scenario',diff:'medium',doc:null,
+q:'A customer is upset and raises their voice at you. You\'ve done nothing wrong. Best response?',
+c:['Raise your voice back','Walk away and ignore them','Stay calm, listen, offer a solution or get a manager','Tell them they\'re being rude'],a:2,
+s:'Calm under pressure = most valued skill. Getting a manager protects everyone.'},
+{cat:'scenario',diff:'easy',doc:null,
+q:'Your manager gives you feedback that your work could be better. How do you respond?',
+c:['Get defensive — explain why it wasn\'t your fault','Say okay, then vent to coworkers','Thank them, ask what you can improve, take notes','Ignore feedback and keep doing the same thing'],a:2,
+s:'Accepting feedback + follow-up questions = growth mindset. Managers notice.'},
+{cat:'scenario',diff:'easy',doc:null,
+q:'You notice a spill on the floor in a busy work area. What do you do?',
+c:['Walk past — someone else will deal with it','Report to a manager or clean it up right away','Tell a coworker but take no action','Ignore it — not your job'],a:1,
+s:'Safety is everyone\'s responsibility. Initiative protects everyone.'},
+{cat:'scenario',diff:'hard',doc:null,
+q:'You\'re asked to stay late at the last minute, but you have personal plans. Best approach?',
+c:['Leave at normal time without saying anything','Agree, cancel plans, resent manager silently','Politely explain your situation and explore a compromise','Make up a fake emergency'],a:2,
+s:'Honest + respectful = professional. Most managers appreciate transparency over excuses.'},
+{cat:'scenario',diff:'medium',doc:null,
+q:'You\'re unsure how to complete a task your manager assigned. What should you do?',
+c:['Guess and hope for the best','Ignore the task','Ask your manager or experienced coworker for clarification','Pretend to be working on it'],a:2,
+s:'Asking for help when unsure shows you care about doing it right.'},
+{cat:'scenario',diff:'hard',doc:null,
+q:'You notice a coworker constantly on their phone, slowing down the team. You\'re their peer. What do you do?',
+c:['Grab their phone and put it away','Mention to manager if it\'s a pattern, or gently address directly if you\'re close','Do their work without saying anything','Post anonymously online'],a:1,
+s:'Reasonable paths: direct conversation if close, or loop in manager if it\'s a consistent pattern.'},
+];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let state = {
+  mode:'all', queue:[], idx:0, score:0, correct:0, wrong:0,
+  combo:0, bestCombo:0, hints:3, answered:false,
+  wrongList:[], blitzTimer:null, timeLeft:120,
+  reviewMode:false
+};
+
+const HI_SCORES = JSON.parse(localStorage.getItem('wk_hi')||'{}');
+function saveHi(mode,score){ if(!HI_SCORES[mode]||score>HI_SCORES[mode]) HI_SCORES[mode]=score; localStorage.setItem('wk_hi',JSON.stringify(HI_SCORES)); }
+function getHi(mode){ return HI_SCORES[mode]||0; }
+
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+function startMode(mode){
+  state.mode = mode;
+  state.idx = 0; state.score = 0; state.correct = 0; state.wrong = 0;
+  state.combo = 0; state.bestCombo = 0; state.hints = 3;
+  state.answered = false; state.wrongList = []; state.reviewMode = false;
+
+  let pool = [...BANK];
+  if(mode==='math') pool = BANK.filter(q=>q.cat==='math');
+  else if(mode==='reading') pool = BANK.filter(q=>q.cat==='reading');
+  else if(mode==='docs') pool = BANK.filter(q=>q.cat==='docs');
+  else if(mode==='scenario') pool = BANK.filter(q=>q.cat==='scenario');
+  else if(mode==='blitz'){ pool = shuffle([...BANK]).slice(0,15); }
+
+  state.queue = shuffle(pool);
+  showScreen('game-screen');
+  renderQ();
+
+  if(mode==='blitz'){
+    state.timeLeft=120;
+    document.getElementById('hud-timer-box').style.display='';
+    startBlitzTimer();
+  } else {
+    document.getElementById('hud-timer-box').style.display='none';
+    if(state.blitzTimer){ clearInterval(state.blitzTimer); state.blitzTimer=null; }
+  }
+}
+
+function startBlitzTimer(){
+  if(state.blitzTimer) clearInterval(state.blitzTimer);
+  state.blitzTimer = setInterval(()=>{
+    state.timeLeft--;
+    const m=Math.floor(state.timeLeft/60), s=state.timeLeft%60;
+    document.getElementById('hud-timer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(state.timeLeft<=10) document.getElementById('hud-timer').style.color='var(--red)';
+    if(state.timeLeft<=0){ clearInterval(state.blitzTimer); endGame(); }
+  },1000);
+}
+
+function renderQ(){
+  const q = state.queue[state.idx];
+  if(!q){ endGame(); return; }
+  state.answered=false;
+
+  const total = state.queue.length;
+  document.getElementById('hud-q').textContent=`${state.idx+1}/${total}`;
+  document.getElementById('xp-bar').style.width=((state.idx/total)*100)+'%';
+  document.getElementById('hud-score').textContent=state.score;
+  document.getElementById('hud-correct').textContent=state.correct;
+  document.getElementById('hud-wrong').textContent=state.wrong;
+  document.getElementById('hud-hints').textContent=state.hints;
+  const comboBox=document.getElementById('hud-combo-box');
+  if(state.combo>=2){ comboBox.style.display=''; document.getElementById('hud-combo').textContent=`🔥 x${state.combo}`; }
+  else comboBox.style.display='none';
+
+  const catLabels={math:'MATH',reading:'READING',docs:'DOCUMENTS',scenario:'SCENARIO'};
+  const catEl=document.getElementById('q-cat');
+  catEl.textContent=catLabels[q.cat]||q.cat.toUpperCase();
+  catEl.className='cat-badge cat-'+q.cat;
+
+  const diffEl=document.getElementById('q-diff');
+  diffEl.textContent=q.diff.charAt(0).toUpperCase()+q.diff.slice(1);
+  diffEl.className='difficulty d-'+q.diff;
+
+  document.getElementById('q-num').textContent=`Q${state.idx+1}`;
+
+  const docEl=document.getElementById('q-doc');
+  if(q.doc){ docEl.style.display=''; docEl.innerHTML=`<strong style="font-size:.75rem;color:var(--neon);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">${q.doc.title}</strong>${q.doc.html}`; }
+  else docEl.style.display='none';
+
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('feedback').className='feedback-block';
+  document.getElementById('feedback').innerHTML='';
+  document.getElementById('solution').className='solution-box';
+  document.getElementById('solution').innerHTML='';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('btn-hint').disabled=false;
+  document.getElementById('btn-reveal').disabled=false;
+
+  const choicesEl=document.getElementById('choices');
+  choicesEl.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.c.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice';
+    btn.innerHTML=`<span class="choice-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick=()=>answer(i);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function answer(i){
+  if(state.answered) return;
+  state.answered=true;
+  const q=state.queue[state.idx];
+  const btns=document.querySelectorAll('.choice');
+  btns.forEach((b,j)=>{ b.disabled=true; if(j===q.a) b.classList.add('correct'); else if(j===i) b.classList.add('wrong'); });
+
+  const correct=(i===q.a);
+  const ptsMult={easy:10,medium:20,hard:35}[q.diff]||20;
+  const comboBonus=Math.max(0,state.combo-1)*5;
+  const pts=correct? ptsMult+comboBonus : 0;
+
+  if(correct){
+    state.correct++;state.score+=pts;state.combo++;
+    if(state.combo>state.bestCombo) state.bestCombo=state.combo;
+    const fb=document.getElementById('feedback');
+    fb.className='feedback-block show ok';
+    fb.innerHTML=`<span class="pts">+${pts}</span><strong>✓ Correct!</strong>${state.combo>=2?` <span style="color:var(--orange)">🔥 ${state.combo}-streak!</span>`:''}<br><span style="font-size:.88rem;opacity:.9">${q.s}</span>`;
+    if(state.combo===3) showToast('🔥 3-COMBO! BONUS POINTS!');
+    if(state.combo===5) showToast('⚡ 5-STREAK! UNSTOPPABLE!');
+    if(pts>=30) spawnConfetti();
+  } else {
+    state.wrong++;state.combo=0;state.wrongList.push(state.idx);
+    const fb=document.getElementById('feedback');
+    fb.className='feedback-block show bad';
+    fb.innerHTML=`<strong>✗ Not quite.</strong> The answer is <strong>${['A','B','C','D'][q.a]}</strong>.<br><span style="font-size:.88rem;opacity:.9">${q.s}</span>`;
+  }
+
+  document.getElementById('hud-score').textContent=state.score;
+  document.getElementById('hud-correct').textContent=state.correct;
+  document.getElementById('hud-wrong').textContent=state.wrong;
+  document.getElementById('btn-next').style.display='';
+}
+
+function nextQ(){
+  state.idx++;
+  if(state.idx>=state.queue.length){ endGame(); return; }
+  renderQ();
+}
+
+function useHint(){
+  if(state.hints<=0||state.answered){ showToast('No hints left!'); return; }
+  state.hints--;
+  document.getElementById('hud-hints').textContent=state.hints;
+  const q=state.queue[state.idx];
+  const wrong=[0,1,2,3].filter(i=>i!==q.a);
+  const toRemove=wrong[Math.floor(Math.random()*wrong.length)];
+  const btns=document.querySelectorAll('.choice');
+  btns[toRemove].style.opacity='.3';
+  btns[toRemove].disabled=true;
+  showToast('💡 One wrong answer eliminated!');
+}
+
+function revealAnswer(){
+  if(state.answered) return;
+  state.answered=true;
+  state.combo=0;
+  const q=state.queue[state.idx];
+  const btns=document.querySelectorAll('.choice');
+  btns.forEach((b,j)=>{ b.disabled=true; if(j===q.a) b.classList.add('correct'); });
+  const sol=document.getElementById('solution');
+  sol.className='solution-box show';
+  sol.innerHTML=`<h4>Step-by-step solution</h4>${q.s}`;
+  document.getElementById('btn-next').style.display='';
+  document.getElementById('btn-reveal').disabled=true;
+}
+
+function endGame(){
+  if(state.blitzTimer){ clearInterval(state.blitzTimer); state.blitzTimer=null; }
+  saveHi(state.mode,state.score);
+  showScreen('results-screen');
+  const total=state.correct+state.wrong;
+  const pct=total>0?Math.round((state.correct/total)*100):0;
+  document.getElementById('r-score').textContent=state.score;
+  document.getElementById('r-correct').textContent=state.correct;
+  document.getElementById('r-pct').textContent=pct+'%';
+  document.getElementById('r-combo').textContent='x'+state.bestCombo;
+  const msgs=[
+    [90,'🏆 PERFECT GAME! WorkKeys MASTER!'],
+    [75,'⚡ EXCELLENT! Strong performance!'],
+    [60,'👍 GOOD RUN! Keep grinding!'],
+    [0,'💪 KEEP PRACTICING! You\'ve got this!']
+  ];
+  document.getElementById('result-title').textContent = pct>=90?'HIGH SCORE!':pct>=75?'GREAT RUN!':'GAME OVER';
+  document.getElementById('grade-msg').textContent = msgs.find(([t])=>pct>=t)[1];
+  if(pct>=75) spawnConfetti();
+}
+
+function reviewWrong(){
+  if(state.wrongList.length===0){ showToast('No wrong answers to review!'); return; }
+  const wrongQs=state.wrongList.map(i=>state.queue[i]);
+  state.queue=wrongQs;
+  state.idx=0;state.score=0;state.correct=0;state.wrong=0;
+  state.combo=0;state.hints=3;state.answered=false;state.wrongList=[];
+  state.reviewMode=true;
+  showScreen('game-screen');
+  renderQ();
+}
+
+function goHome(){
+  if(state.blitzTimer){ clearInterval(state.blitzTimer); state.blitzTimer=null; }
+  showScreen('title-screen');
+  updateHiScores();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('on');s.style.display='none';});
+  const el=document.getElementById(id);
+  el.style.display='flex';
+  setTimeout(()=>el.classList.add('on'),10);
+}
+
+function updateHiScores(){
+  const modes=['all','math','reading','docs','scenario','blitz'];
+  const labels={all:'Full Arcade',math:'Math Zone',reading:'Reading Raid',docs:'Doc Dungeon',scenario:'Scenario Boss',blitz:'Speed Blitz'};
+  const scores=modes.filter(m=>HI_SCORES[m]).map(m=>`<strong>${labels[m]}:</strong> ${HI_SCORES[m]}`).join(' &nbsp;|&nbsp; ');
+  document.getElementById('hi-scores-display').innerHTML=scores?`🏆 HIGH SCORES — ${scores}`:'';
+}
+
+// TOAST
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// CONFETTI
+function spawnConfetti(){
+  const canvas=document.getElementById('confetti-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const colors=['#ffe45c','#ff4fd8','#39f5ff','#44ff88','#ff4060'];
+  const pieces=[];
+  for(let i=0;i<80;i++) pieces.push({
+    x:Math.random()*canvas.width,y:-20,
+    vx:(Math.random()-0.5)*6,vy:Math.random()*4+3,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    r:Math.random()*8+4,rot:Math.random()*Math.PI*2,vr:(Math.random()-0.5)*0.2
+  });
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=p.color;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);
+      ctx.restore();
+    });
+    frame++;
+    if(frame<120) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+updateHiScores();
+</script>
+</body>
+</html>
