@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkKeys Timed Practice: Math + Workplace Documents</title>
+<style>
+  :root {
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --ink:#10213f;
+    --muted:#5d6b82;
+    --accent:#1f5fbf;
+    --good:#1d7f43;
+    --bad:#b42318;
+    --warn:#9a6700;
+    --border:#d8e1ef;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.45;
+    padding-bottom:90px;
+  }
+  header {
+    background:#0f2d57;
+    color:white;
+    padding:18px 20px;
+    position:sticky;
+    top:0;
+    z-index:100;
+    box-shadow:0 2px 12px rgba(0,0,0,.18);
+  }
+  .header-inner {
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  }
+  h1 { font-size:1.25rem; margin:0; }
+  .timerBox {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:white;
+    color:#0f2d57;
+    border-radius:14px;
+    padding:8px 12px;
+    font-weight:700;
+    min-width:250px;
+    justify-content:space-between;
+  }
+  #timer {
+    font-size:1.55rem;
+    letter-spacing:1px;
+  }
+  .timerBox button, .topBtn {
+    border:none;
+    border-radius:10px;
+    padding:8px 10px;
+    background:#e7eef9;
+    color:#0f2d57;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .timerBox button:hover, .topBtn:hover { background:#d7e6fa; }
+  main {
+    max-width:1100px;
+    margin:20px auto;
+    padding:0 14px;
+  }
+  .intro, .segment, .resultCard {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 4px 18px rgba(16,33,63,.06);
+  }
+  .intro h2, .segment h2 { margin-top:0; }
+  .controls {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:14px;
+  }
+  button.primary {
+    background:var(--accent);
+    color:white;
+    border:none;
+    border-radius:12px;
+    padding:11px 16px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button.secondary {
+    background:#eef3fb;
+    color:var(--ink);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:11px 16px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button:disabled {
+    opacity:.5;
+    cursor:not-allowed;
+  }
+  .segmentNav {
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .segBtn {
+    padding:12px 8px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:white;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .segBtn.active {
+    border-color:var(--accent);
+    background:#e8f0fd;
+    color:#0f4ea2;
+  }
+  .question {
+    border-top:1px solid var(--border);
+    padding:18px 0;
+  }
+  .qMeta {
+    color:var(--muted);
+    font-size:.88rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    margin-bottom:6px;
+  }
+  .passage {
+    background:#f7f9fd;
+    border-left:5px solid #6a92d8;
+    padding:12px 14px;
+    border-radius:12px;
+    margin:10px 0 12px;
+    color:#1d2b45;
+  }
+  .prompt {
+    font-weight:700;
+    font-size:1.04rem;
+    margin:8px 0 12px;
+  }
+  .choices {
+    display:grid;
+    gap:8px;
+  }
+  label.choice {
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    background:#fbfcff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 12px;
+    cursor:pointer;
+  }
+  label.choice:hover {
+    background:#f1f6ff;
+  }
+  .feedback {
+    margin-top:10px;
+    border-radius:12px;
+    padding:10px 12px;
+    display:none;
+  }
+  .feedback.good {
+    display:block;
+    background:#eaf8ef;
+    color:#14532d;
+    border:1px solid #b8e5c5;
+  }
+  .feedback.bad {
+    display:block;
+    background:#fff0ee;
+    color:#7a1c12;
+    border:1px solid #f5b7ae;
+  }
+  .scoreLine {
+    font-size:1.15rem;
+    font-weight:800;
+    margin:8px 0;
+  }
+  .small {
+    color:var(--muted);
+    font-size:.94rem;
+  }
+  .hidden { display:none; }
+  .stickyFooter {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:white;
+    border-top:1px solid var(--border);
+    padding:10px 14px;
+    z-index:99;
+    box-shadow:0 -2px 12px rgba(0,0,0,.08);
+  }
+  .footerInner {
+    max-width:1100px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .progressBar {
+    height:12px;
+    background:#e6edf7;
+    border-radius:999px;
+    overflow:hidden;
+    flex:1;
+  }
+  #progressFill {
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width .2s ease;
+  }
+  canvas#confetti {
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:9999;
+  }
+  @media (max-width:760px) {
+    .header-inner { flex-direction:column; align-items:stretch; }
+    .timerBox { min-width:0; width:100%; }
+    .segmentNav { grid-template-columns:1fr; }
+    .footerInner { flex-direction:column; align-items:stretch; }
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<header>
+  <div class="header-inner">
+    <h1>WorkKeys Timed Practice: Math + Workplace Documents</h1>
+    <div class="timerBox" aria-live="polite">
+      <span>Block Timer</span>
+      <span id="timer">10:00</span>
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="resetTimer()">Reset</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <h2>Directions</h2>
+    <p>This quiz has <strong>50 questions</strong> split into <strong>five 10-question segments</strong>. Each segment is designed for a <strong>10-minute timed block</strong>. Questions focus on mid-to-higher difficulty workplace math and workplace document reasoning.</p>
+    <p>After each 10-question segment, submit that segment for an immediate score. If the segment score is <strong>100%</strong>, a full-screen confetti storm will launch.</p>
+    <div class="controls">
+      <button class="primary" onclick="showSegment(1); resetTimer();">Start Segment 1</button>
+      <button class="secondary" onclick="print()">Print</button>
+      <button class="secondary" onclick="resetAll()">Reset All Answers</button>
+    </div>
+  </section>
+
+  <div class="segmentNav" id="segmentNav"></div>
+  <div id="quiz"></div>
+</main>
+
+<div class="stickyFooter">
+  <div class="footerInner">
+    <div><strong id="footerStatus">Segment 1</strong> <span class="small" id="footerScore">No score yet</span></div>
+    <div class="progressBar"><div id="progressFill"></div></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [{"segment": 1, "type": "math", "question": "A warehouse packs 18 boxes every 12 minutes. At that same rate, how many boxes can the team pack in 1 hour and 20 minutes?", "choices": ["90", "108", "120", "144"], "answer": 2, "tip": "Find the unit rate first: 18 boxes / 12 minutes = 1.5 boxes per minute. Then multiply by 80 minutes."}, {"segment": 1, "type": "math", "question": "A delivery van averages 24 miles per gallon. The route is 156 miles. Gas costs $3.48 per gallon. About how much will the gas cost for the route?", "choices": ["$18.10", "$22.62", "$24.94", "$27.48"], "answer": 1, "tip": "Divide miles by miles per gallon to find gallons, then multiply by the cost per gallon."}, {"segment": 1, "type": "math", "question": "A printer produces 32 flyers per minute. It needs to print 2,400 flyers. The first 15 minutes are already complete. How many more minutes are needed?", "choices": ["45", "60", "75", "90"], "answer": 1, "tip": "Find total time needed for 2,400 flyers, then subtract the 15 minutes already completed."}, {"segment": 1, "type": "math", "question": "A job pays $18.75 per hour. An employee works 37.5 hours. What is the gross pay?", "choices": ["$656.25", "$703.13", "$718.75", "$750.00"], "answer": 1, "tip": "Multiply hourly rate by hours worked. Be careful with 37.5 hours."}, {"segment": 1, "type": "math", "question": "A rectangular storage area is 14.5 feet long and 8 feet wide. Flooring costs $2.40 per square foot. What is the total flooring cost?", "choices": ["$232.00", "$278.40", "$292.80", "$348.00"], "answer": 1, "tip": "Area = length \u00d7 width. Then multiply the area by cost per square foot."}, {"segment": 1, "type": "docs", "passage": "Workplace Procedure: All incident reports must be submitted before the end of the employee's shift. If the incident involves customer injury, equipment damage, or a safety hazard that remains unresolved, the supervisor must be notified immediately before the written report is submitted. Reports must include the date, time, location, names of involved employees, and a brief factual description. Employees should avoid opinions or guesses in the report.", "question": "An employee sees a spill that causes a customer to fall. What should the employee do first?", "choices": ["Submit a written report at the end of the shift", "Clean the area and tell no one if the customer seems fine", "Notify the supervisor immediately", "Write an opinion about who caused the spill"], "answer": 2, "tip": "The procedure says customer injury requires immediate supervisor notification before the written report."}, {"segment": 1, "type": "docs", "passage": "Workplace Procedure: All incident reports must be submitted before the end of the employee's shift. If the incident involves customer injury, equipment damage, or a safety hazard that remains unresolved, the supervisor must be notified immediately before the written report is submitted. Reports must include the date, time, location, names of involved employees, and a brief factual description. Employees should avoid opinions or guesses in the report.", "question": "Which item does NOT belong in the incident report?", "choices": ["Date and time", "Location", "Brief factual description", "A guess about who was careless"], "answer": 3, "tip": "The procedure specifically says to avoid opinions or guesses."}, {"segment": 1, "type": "math", "question": "A shipment contains 420 items. Quality control checks 15% of the items. Of the checked items, 4 are defective. What percent of the checked items were defective?", "choices": ["4.0%", "6.3%", "9.5%", "15.0%"], "answer": 1, "tip": "First find 15% of 420. Then divide defective items by checked items."}, {"segment": 1, "type": "math", "question": "A cafeteria recipe serves 24 people and uses 3.5 pounds of chicken. How many pounds are needed to serve 60 people at the same rate?", "choices": ["7.5", "8.25", "8.75", "9.5"], "answer": 2, "tip": "60 is 2.5 times 24, so multiply 3.5 by 2.5."}, {"segment": 1, "type": "docs", "passage": "Scheduling Rule: Employees may trade shifts only if both employees are trained for the assigned position, the trade does not create overtime, and the manager approves the change at least 24 hours before the shift begins. Emergency changes with less than 24 hours' notice require direct manager approval by phone.", "question": "Two employees want to trade shifts tomorrow. Both are trained, and no overtime will result. What else is required?", "choices": ["No action is needed", "Approval from a manager at least 24 hours before the shift", "A written customer complaint", "Approval from payroll after the shift"], "answer": 1, "tip": "Even if training and overtime rules are met, manager approval is still required."}, {"segment": 2, "type": "math", "question": "A machine uses 2.75 gallons of coolant every 5 hours. How many gallons will it use in a 16-hour production run?", "choices": ["6.8", "7.7", "8.8", "9.5"], "answer": 2, "tip": "Find gallons per hour, then multiply by 16."}, {"segment": 2, "type": "math", "question": "A supervisor budgets $1,250 for supplies. After spending $487.65 and $326.20, how much remains?", "choices": ["$436.15", "$446.15", "$536.15", "$813.85"], "answer": 0, "tip": "Add the two expenses, then subtract from the budget."}, {"segment": 2, "type": "docs", "passage": "Technical Memo: Before operating the laminator, employees must verify that the heat setting matches the material type. Paper signs require 220\u00b0F, cardstock requires 250\u00b0F, and synthetic tags require 275\u00b0F. If the machine has been idle for more than 30 minutes, run one test sheet before processing customer materials. If bubbling appears, reduce the temperature by 10\u00b0F and test again.", "question": "The laminator has been idle for 45 minutes and will be used for cardstock. What should happen before processing customer materials?", "choices": ["Set it to 220\u00b0F and begin", "Set it to 250\u00b0F and run one test sheet", "Set it to 275\u00b0F and reduce by 10\u00b0F", "Skip testing if the machine is already warm"], "answer": 1, "tip": "Cardstock needs 250\u00b0F, and idle time over 30 minutes requires a test sheet."}, {"segment": 2, "type": "docs", "passage": "Technical Memo: Before operating the laminator, employees must verify that the heat setting matches the material type. Paper signs require 220\u00b0F, cardstock requires 250\u00b0F, and synthetic tags require 275\u00b0F. If the machine has been idle for more than 30 minutes, run one test sheet before processing customer materials. If bubbling appears, reduce the temperature by 10\u00b0F and test again.", "question": "A synthetic tag test sheet bubbles at 275\u00b0F. What is the next correct setting?", "choices": ["220\u00b0F", "250\u00b0F", "265\u00b0F", "285\u00b0F"], "answer": 2, "tip": "The memo says reduce the temperature by 10\u00b0F if bubbling appears."}, {"segment": 2, "type": "math", "question": "A company orders 36 cases of paper. Each case contains 10 reams. Each ream has 500 sheets. How many sheets were ordered?", "choices": ["18,000", "36,000", "180,000", "360,000"], "answer": 2, "tip": "Multiply cases \u00d7 reams per case \u00d7 sheets per ream."}, {"segment": 2, "type": "math", "question": "A team must complete 7,200 labels. They complete 35% before lunch and 2,850 after lunch. How many labels remain?", "choices": ["1,830", "1,850", "2,520", "4,370"], "answer": 0, "tip": "Find 35% of 7,200, add 2,850, then subtract from 7,200."}, {"segment": 2, "type": "math", "question": "A delivery route has 5 stops. The distances between stops are 8.6, 12.4, 7.75, 15.2, and 9.05 miles. What is the total distance?", "choices": ["51.0 miles", "52.0 miles", "53.0 miles", "54.0 miles"], "answer": 2, "tip": "Add the distances carefully, lining up decimal places."}, {"segment": 2, "type": "docs", "passage": "Attendance Policy: Employees must clock in no earlier than 7 minutes before the scheduled start time and no later than 3 minutes after. Clock-ins outside that window require a supervisor note. Repeated early clock-ins may result in schedule review because they can create unauthorized paid time.", "question": "An employee scheduled for 8:00 clocks in at 7:51. What does the policy require?", "choices": ["Nothing; the employee is early", "A supervisor note", "Automatic overtime approval", "A missed punch form"], "answer": 1, "tip": "7:51 is 9 minutes before 8:00, outside the allowed 7-minute early window."}, {"segment": 2, "type": "math", "question": "A store marks an item down 20%. The sale price is $64. What was the original price?", "choices": ["$76.80", "$80.00", "$84.00", "$85.33"], "answer": 1, "tip": "If the item is marked down 20%, the sale price is 80% of the original price."}, {"segment": 2, "type": "docs", "passage": "Attendance Policy: Employees must clock in no earlier than 7 minutes before the scheduled start time and no later than 3 minutes after. Clock-ins outside that window require a supervisor note. Repeated early clock-ins may result in schedule review because they can create unauthorized paid time.", "question": "Which clock-in for an 8:00 start is within the allowed window?", "choices": ["7:50", "7:52", "7:54", "8:05"], "answer": 2, "tip": "The allowed window is 7:53 through 8:03."}, {"segment": 3, "type": "math", "question": "A blueprint uses a scale of 1 inch = 6 feet. A wall measures 3.75 inches on the blueprint. What is the actual wall length?", "choices": ["18.5 feet", "20.25 feet", "22.5 feet", "24.75 feet"], "answer": 2, "tip": "Multiply the blueprint measurement by 6 feet per inch."}, {"segment": 3, "type": "docs", "passage": "Inventory Control Rule: Items labeled A are counted weekly, items labeled B are counted monthly, and items labeled C are counted quarterly. Any item with a difference of more than 5 units between the system count and physical count must be recounted by a second employee. If the second count confirms the difference, the inventory adjustment form must be completed before the end of the day.", "question": "A B item has a system count of 142 and a physical count of 136. What must happen next?", "choices": ["No action; B items are only monthly", "A second employee must recount it", "Adjust the inventory immediately without recounting", "Wait until the quarterly count"], "answer": 1, "tip": "The difference is 6 units, which is more than 5, so a second count is required."}, {"segment": 3, "type": "math", "question": "A tank is 3/8 full and contains 27 gallons. What is the tank's total capacity?", "choices": ["64 gallons", "72 gallons", "81 gallons", "96 gallons"], "answer": 1, "tip": "If 3/8 equals 27, divide 27 by 3 and multiply by 8."}, {"segment": 3, "type": "math", "question": "A contractor needs 18 boards, each 7.5 feet long. Boards are sold in 12-foot lengths. What is the minimum number of 12-foot boards needed if each 7.5-foot piece must be cut from a single board?", "choices": ["12", "14", "18", "24"], "answer": 2, "tip": "Each 12-foot board can only make one 7.5-foot piece because the leftover is 4.5 feet."}, {"segment": 3, "type": "docs", "passage": "Inventory Control Rule: Items labeled A are counted weekly, items labeled B are counted monthly, and items labeled C are counted quarterly. Any item with a difference of more than 5 units between the system count and physical count must be recounted by a second employee. If the second count confirms the difference, the inventory adjustment form must be completed before the end of the day.", "question": "A C item is counted today. The system says 90 and the physical count says 86. What is the correct action?", "choices": ["Recount by a second employee", "Complete an adjustment form immediately", "No second recount is required by this rule", "Count all C items weekly from now on"], "answer": 2, "tip": "The difference is 4 units, which is not more than 5."}, {"segment": 3, "type": "math", "question": "A medication label says to give 0.8 mL per 10 pounds of body weight. An animal weighs 65 pounds. How many mL are needed?", "choices": ["4.8 mL", "5.2 mL", "5.6 mL", "6.5 mL"], "answer": 1, "tip": "65 pounds is 6.5 groups of 10 pounds. Multiply 6.5 by 0.8."}, {"segment": 3, "type": "math", "question": "A store's sales increased from $48,000 to $55,200. What was the percent increase?", "choices": ["12%", "15%", "17%", "20%"], "answer": 1, "tip": "Find the increase, then divide by the original amount."}, {"segment": 3, "type": "docs", "passage": "Return Authorization: Customer returns over $100 require manager approval. Returns without a receipt may be exchanged for store credit only if the item is still sold by the store and passes inspection. Damaged items may be returned only when the damage is due to a manufacturing defect, not customer misuse.", "question": "A customer has no receipt for an undamaged item the store still sells. What return option may be allowed?", "choices": ["Cash refund", "Store credit only", "Automatic manager refund", "No return under any condition"], "answer": 1, "tip": "Without a receipt, the policy allows store credit only if the item is still sold and passes inspection."}, {"segment": 3, "type": "math", "question": "An employee earns 1.5 times the regular rate for overtime. Regular pay is $21.20/hour. The employee works 40 regular hours and 6 overtime hours. What is the total pay?", "choices": ["$975.20", "$1,038.80", "$1,060.00", "$1,124.80"], "answer": 1, "tip": "Calculate regular pay and overtime pay separately. Overtime rate is 1.5 \u00d7 $21.20."}, {"segment": 3, "type": "docs", "passage": "Return Authorization: Customer returns over $100 require manager approval. Returns without a receipt may be exchanged for store credit only if the item is still sold by the store and passes inspection. Damaged items may be returned only when the damage is due to a manufacturing defect, not customer misuse.", "question": "A $135 return has a receipt and passes inspection. What extra step is required?", "choices": ["Manager approval", "Store credit only", "Manufacturing defect form", "No extra step"], "answer": 0, "tip": "Returns over $100 require manager approval."}, {"segment": 4, "type": "math", "question": "A cylindrical container has a radius of 4 inches and a height of 10 inches. Using 3.14 for pi, what is the approximate volume?", "choices": ["125.6 cubic inches", "251.2 cubic inches", "502.4 cubic inches", "1,256 cubic inches"], "answer": 2, "tip": "Volume of a cylinder is pi \u00d7 radius squared \u00d7 height."}, {"segment": 4, "type": "docs", "passage": "Data Entry Standard: Customer names must be entered exactly as shown on the signed form. Phone numbers must include area code and be entered with digits only. If a required field is unreadable, do not guess. Mark the field as 'Needs Review' and send the form to the records queue. Optional fields may be left blank.", "question": "A required phone number is partly unreadable. What should the employee do?", "choices": ["Guess the missing digits", "Enter only the readable digits", "Mark it Needs Review and send it to the records queue", "Leave it blank because phone numbers are optional"], "answer": 2, "tip": "The standard says not to guess unreadable required fields."}, {"segment": 4, "type": "math", "question": "A company pays a 6% commission on sales above $4,000. An employee sells $6,750. What commission is earned?", "choices": ["$165", "$240", "$405", "$675"], "answer": 0, "tip": "Commission applies only to sales above $4,000."}, {"segment": 4, "type": "math", "question": "A truck can carry 3,200 pounds. It already has 1,475 pounds loaded. Each crate weighs 85 pounds. What is the greatest number of additional crates it can carry?", "choices": ["19", "20", "21", "22"], "answer": 1, "tip": "Find remaining capacity, then divide by 85. Round down because a partial crate cannot be loaded."}, {"segment": 4, "type": "docs", "passage": "Data Entry Standard: Customer names must be entered exactly as shown on the signed form. Phone numbers must include area code and be entered with digits only. If a required field is unreadable, do not guess. Mark the field as 'Needs Review' and send the form to the records queue. Optional fields may be left blank.", "question": "Which phone number entry follows the standard?", "choices": ["(989) 555-0174", "989-555-0174", "9895550174", "5550174"], "answer": 2, "tip": "Phone numbers must include area code and use digits only."}, {"segment": 4, "type": "math", "question": "A team completes 5/12 of a project Monday and 1/3 on Tuesday. What fraction of the project remains?", "choices": ["1/4", "1/3", "5/12", "3/4"], "answer": 0, "tip": "Convert 1/3 to 4/12, add completed parts, then subtract from 1."}, {"segment": 4, "type": "math", "question": "A recipe ratio is 2 parts concentrate to 7 parts water. How many gallons of water are needed for 6 gallons of concentrate?", "choices": ["14", "18", "21", "24"], "answer": 2, "tip": "The water is 7/2 times the concentrate."}, {"segment": 4, "type": "docs", "passage": "Safety Lockout Procedure: Before maintenance begins, the machine must be powered down, locked out, and tagged with the employee's name and date. Only the employee who placed the lock may remove it, unless a supervisor completes the emergency removal checklist. Testing the machine after maintenance requires all tools to be cleared and all guards reinstalled.", "question": "Who may normally remove a lockout lock?", "choices": ["Any trained employee", "The employee who placed it", "The next shift supervisor", "The first person to finish maintenance"], "answer": 1, "tip": "The rule says only the employee who placed the lock may remove it unless emergency removal is completed."}, {"segment": 4, "type": "math", "question": "A 40-pound bag of seed covers 5,000 square feet. How many pounds are needed for 13,750 square feet?", "choices": ["90", "100", "110", "120"], "answer": 2, "tip": "Find pounds per square foot or use a proportion: 13,750 is 2.75 times 5,000."}, {"segment": 4, "type": "docs", "passage": "Safety Lockout Procedure: Before maintenance begins, the machine must be powered down, locked out, and tagged with the employee's name and date. Only the employee who placed the lock may remove it, unless a supervisor completes the emergency removal checklist. Testing the machine after maintenance requires all tools to be cleared and all guards reinstalled.", "question": "Before testing the machine after maintenance, what must be true?", "choices": ["The machine must run for 10 minutes", "All tools must be cleared and guards reinstalled", "The lock must remain attached during full operation", "A customer must approve the restart"], "answer": 1, "tip": "The testing requirement is tools cleared and guards reinstalled."}, {"segment": 5, "type": "math", "question": "A floor plan is drawn at a scale of 1/4 inch = 1 foot. A room is 4.5 inches by 3.25 inches on the drawing. What is the actual area of the room?", "choices": ["117 sq ft", "180 sq ft", "234 sq ft", "936 sq ft"], "answer": 2, "tip": "Convert each drawing dimension to feet first. Since 1/4 inch = 1 foot, multiply inches by 4."}, {"segment": 5, "type": "docs", "passage": "Quality Assurance Notice: A batch fails inspection if more than 2% of sampled units fail. For any failed batch, production must pause, the cause must be documented, and a supervisor must approve restart. If the failure rate is 2% or less, production may continue, but the failed units must be removed and logged.", "question": "A sample of 250 units has 6 failures. What should happen?", "choices": ["Production continues because 6 is less than 10", "Production pauses because the failure rate is over 2%", "Only the failed units are removed and logged", "The sample should be ignored"], "answer": 1, "tip": "6 out of 250 is 2.4%, which is more than 2%."}, {"segment": 5, "type": "math", "question": "A worker mixed 18 liters of a solution that is 30% cleaner. How many liters of pure cleaner are in the solution?", "choices": ["3.6", "5.4", "6.0", "12.6"], "answer": 1, "tip": "Multiply total liters by 30%."}, {"segment": 5, "type": "math", "question": "A project has a labor estimate of 84 hours. The team has completed 62.5% of the labor. How many labor hours remain?", "choices": ["21.0", "31.5", "52.5", "56.0"], "answer": 1, "tip": "If 62.5% is complete, then 37.5% remains."}, {"segment": 5, "type": "docs", "passage": "Quality Assurance Notice: A batch fails inspection if more than 2% of sampled units fail. For any failed batch, production must pause, the cause must be documented, and a supervisor must approve restart. If the failure rate is 2% or less, production may continue, but the failed units must be removed and logged.", "question": "A sample of 400 units has 8 failures. Which action matches the notice?", "choices": ["Pause production immediately", "Continue production, remove and log failed units", "Supervisor approval is required before continuing", "Reject the entire batch automatically"], "answer": 1, "tip": "8 out of 400 equals exactly 2%, so production may continue under the policy."}, {"segment": 5, "type": "math", "question": "A company charges a flat $85 service fee plus $42.50 per hour. A customer bill is $382.50. How many hours were billed?", "choices": ["6", "7", "8", "9"], "answer": 1, "tip": "Subtract the flat fee first, then divide by the hourly rate."}, {"segment": 5, "type": "math", "question": "A tank drains at 4.6 gallons per minute. It starts with 135 gallons. After 18 minutes, how many gallons remain?", "choices": ["49.8", "52.2", "82.8", "87.2"], "answer": 1, "tip": "Find how many gallons drained, then subtract from 135."}, {"segment": 5, "type": "docs", "passage": "Confidential Records Policy: Employee medical documents must be stored separately from personnel files. Access is limited to HR staff and authorized administrators. Documents may be shared with supervisors only when necessary to implement work restrictions or accommodations, and only the minimum necessary information should be shared.", "question": "A supervisor asks for an employee's full medical document to understand an accommodation. What should HR do?", "choices": ["Send the full document to the supervisor", "Share only the minimum necessary information related to the accommodation", "Refuse to discuss any work restriction", "Place the document in the regular personnel file"], "answer": 1, "tip": "The policy allows limited sharing only when necessary, and only the minimum necessary information."}, {"segment": 5, "type": "math", "question": "A part is measured at 2.486 inches. The allowed tolerance is 2.500 inches \u00b1 0.015 inches. Is the part acceptable?", "choices": ["Yes, because it is within the range", "Yes, because it is below 2.500", "No, because it is too small", "No, because it is too large"], "answer": 0, "tip": "The acceptable range is 2.485 to 2.515 inches."}, {"segment": 5, "type": "docs", "passage": "Confidential Records Policy: Employee medical documents must be stored separately from personnel files. Access is limited to HR staff and authorized administrators. Documents may be shared with supervisors only when necessary to implement work restrictions or accommodations, and only the minimum necessary information should be shared.", "question": "Where should employee medical documents be stored?", "choices": ["In the regular personnel file", "Separately from personnel files", "With the direct supervisor", "In the payroll spreadsheet"], "answer": 1, "tip": "The first sentence gives the storage rule directly."}];
+
+let currentSegment = 1;
+let secondsLeft = 600;
+let timerId = null;
+let scores = {};
+
+function buildNav() {
+  const nav = document.getElementById('segmentNav');
+  nav.innerHTML = '';
+  for (let i=1; i<=5; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'segBtn' + (i === currentSegment ? ' active' : '');
+    btn.textContent = 'Segment ' + i;
+    btn.onclick = () => { showSegment(i); resetTimer(); };
+    nav.appendChild(btn);
+  }
+}
+
+function showSegment(seg) {
+  currentSegment = seg;
+  buildNav();
+  const quiz = document.getElementById('quiz');
+  const segQuestions = QUESTIONS.filter(q => q.segment === seg);
+  quiz.innerHTML = `
+    <section class="segment">
+      <h2>Segment ${seg}: 10 Questions / 10 Minutes</h2>
+      <p class="small">Start the timer when Joe begins. Submit the segment when all 10 questions are answered or when time expires.</p>
+      <div id="questionsWrap"></div>
+      <div class="controls">
+        <button class="primary" onclick="gradeSegment(${seg})">Submit Segment ${seg}</button>
+        <button class="secondary" onclick="clearSegment(${seg})">Clear Segment</button>
+      </div>
+      <div id="result-${seg}" class="resultCard hidden"></div>
+    </section>
+  `;
+  const wrap = document.getElementById('questionsWrap');
+  segQuestions.forEach((q, idx) => {
+    const absoluteNum = (seg-1)*10 + idx + 1;
+    const block = document.createElement('div');
+    block.className = 'question';
+    const passage = q.passage ? `<div class="passage">${escapeHTML(q.passage)}</div>` : '';
+    block.innerHTML = `
+      <div class="qMeta">Question ${absoluteNum} • ${q.type === 'math' ? 'Applied Math' : 'Workplace Document'}</div>
+      ${passage}
+      <div class="prompt">${escapeHTML(q.question)}</div>
+      <div class="choices">
+        ${q.choices.map((c,i)=>`
+          <label class="choice">
+            <input type="radio" name="q${absoluteNum}" value="${i}" onchange="updateProgress()">
+            <span>${String.fromCharCode(65+i)}. ${escapeHTML(c)}</span>
+          </label>
+        `).join('')}
+      </div>
+      <div id="fb-${absoluteNum}" class="feedback"></div>
+    `;
+    wrap.appendChild(block);
+  });
+  updateFooter();
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function gradeSegment(seg) {
+  const segQuestions = QUESTIONS.filter(q => q.segment === seg);
+  let correct = 0;
+  let answered = 0;
+
+  segQuestions.forEach((q, idx) => {
+    const absoluteNum = (seg-1)*10 + idx + 1;
+    const selected = document.querySelector(`input[name="q${absoluteNum}"]:checked`);
+    const fb = document.getElementById(`fb-${absoluteNum}`);
+    if (selected) {
+      answered++;
+      const choice = Number(selected.value);
+      if (choice === q.answer) {
+        correct++;
+        fb.className = 'feedback good';
+        fb.innerHTML = '<strong>Correct.</strong> Nice work.';
+      } else {
+        fb.className = 'feedback bad';
+        fb.innerHTML = '<strong>Not quite.</strong> ' + escapeHTML(q.tip);
+      }
+    } else {
+      fb.className = 'feedback bad';
+      fb.innerHTML = '<strong>Unanswered.</strong> Choose an answer before final scoring. Tip: ' + escapeHTML(q.tip);
+    }
+  });
+
+  const pct = Math.round((correct / segQuestions.length) * 100);
+  scores[seg] = {correct, total:segQuestions.length, pct, answered};
+  const result = document.getElementById(`result-${seg}`);
+  result.className = 'resultCard';
+  result.innerHTML = `
+    <h3>Segment ${seg} Score</h3>
+    <div class="scoreLine">${correct} / ${segQuestions.length} = ${pct}%</div>
+    <p>${answered} of ${segQuestions.length} questions answered.</p>
+    <p class="small">${pct === 100 ? 'Perfect segment. Confetti earned.' : 'Review the red feedback boxes, then discuss the thinking pattern before moving on.'}</p>
+  `;
+  if (pct === 100) {
+    launchConfettiStorm();
+  }
+  updateFooter();
+  updateProgress();
+  result.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function clearSegment(seg) {
+  const segQuestions = QUESTIONS.filter(q => q.segment === seg);
+  segQuestions.forEach((q, idx) => {
+    const absoluteNum = (seg-1)*10 + idx + 1;
+    document.querySelectorAll(`input[name="q${absoluteNum}"]`).forEach(input => input.checked = false);
+    const fb = document.getElementById(`fb-${absoluteNum}`);
+    if (fb) { fb.className = 'feedback'; fb.innerHTML = ''; }
+  });
+  delete scores[seg];
+  const result = document.getElementById(`result-${seg}`);
+  if (result) { result.className = 'resultCard hidden'; result.innerHTML = ''; }
+  updateFooter();
+  updateProgress();
+}
+
+function updateProgress() {
+  const segQuestions = QUESTIONS.filter(q => q.segment === currentSegment);
+  let answered = 0;
+  segQuestions.forEach((q, idx) => {
+    const absoluteNum = (currentSegment-1)*10 + idx + 1;
+    if (document.querySelector(`input[name="q${absoluteNum}"]:checked`)) answered++;
+  });
+  document.getElementById('progressFill').style.width = (answered / 10 * 100) + '%';
+}
+
+function updateFooter() {
+  document.getElementById('footerStatus').textContent = 'Segment ' + currentSegment;
+  const s = scores[currentSegment];
+  document.getElementById('footerScore').textContent = s ? `Score: ${s.correct}/${s.total} (${s.pct}%)` : 'No score yet';
+}
+
+function startTimer() {
+  if (timerId) return;
+  timerId = setInterval(() => {
+    secondsLeft--;
+    renderTimer();
+    if (secondsLeft <= 0) {
+      pauseTimer();
+      secondsLeft = 0;
+      renderTimer();
+      alert('Time is up for this 10-minute block.');
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (timerId) {
+    clearInterval(timerId);
+    timerId = null;
+  }
+}
+
+function resetTimer() {
+  pauseTimer();
+  secondsLeft = 600;
+  renderTimer();
+}
+
+function renderTimer() {
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const timer = document.getElementById('timer');
+  timer.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  timer.style.color = secondsLeft <= 60 ? '#b42318' : '#0f2d57';
+}
+
+function resetAll() {
+  if (!confirm('Reset all answers and scores?')) return;
+  scores = {};
+  showSegment(1);
+  resetTimer();
+}
+
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#039;'
+  }[ch]));
+}
+
+// Confetti storm
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+let confettiParticles = [];
+let confettiAnimation = null;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function launchConfettiStorm() {
+  resizeCanvas();
+  confettiParticles = [];
+  const count = 420;
+  for (let i=0; i<count; i++) {
+    confettiParticles.push({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * canvas.height,
+      w: 6 + Math.random() * 8,
+      h: 8 + Math.random() * 12,
+      vx: -3 + Math.random() * 6,
+      vy: 3 + Math.random() * 7,
+      rot: Math.random() * Math.PI,
+      spin: -0.22 + Math.random() * 0.44,
+      life: 180 + Math.random() * 80,
+      hue: Math.floor(Math.random() * 360)
+    });
+  }
+  if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
+  animateConfetti();
+  setTimeout(() => {
+    confettiParticles = [];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
+    confettiAnimation = null;
+  }, 6500);
+}
+
+function animateConfetti() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  confettiParticles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rot += p.spin;
+    p.vy += 0.035;
+    p.life--;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = `hsl(${p.hue}, 90%, 55%)`;
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  });
+  confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < canvas.height + 80);
+  if (confettiParticles.length) {
+    confettiAnimation = requestAnimationFrame(animateConfetti);
+  }
+}
+
+buildNav();
+showSegment(1);
+renderTimer();
+</script>
+</body>
+</html>
